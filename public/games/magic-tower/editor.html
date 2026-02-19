@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>魔塔地图编辑器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', SimHei, Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            display: flex;
+        }
+        
+        /* 左侧工具栏 */
+        .toolbar {
+            width: 280px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            overflow-y: auto;
+            height: 100vh;
+            border-right: 2px solid #C76114;
+        }
+        
+        .toolbar h2 {
+            color: #C76114;
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-align: center;
+            border-bottom: 1px solid #C76114;
+            padding-bottom: 10px;
+        }
+        
+        .toolbar h3 {
+            color: #ffd700;
+            margin: 15px 0 10px;
+            font-size: 14px;
+        }
+        
+        .element-category {
+            margin-bottom: 15px;
+        }
+        
+        .element-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+        }
+        
+        .element-item {
+            width: 45px;
+            height: 45px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .element-item:hover {
+            border-color: #ffd700;
+            transform: scale(1.1);
+            z-index: 10;
+        }
+        
+        .element-item.selected {
+            border-color: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        
+        .element-item img {
+            max-width: 40px;
+            max-height: 40px;
+            image-rendering: pixelated;
+        }
+        
+        .element-item .element-id {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            font-size: 8px;
+            background: rgba(0,0,0,0.7);
+            padding: 1px 3px;
+            color: #fff;
+        }
+        
+        /* 主编辑区 */
+        .editor-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+        
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .editor-header h1 {
+            color: #C76114;
+            font-size: 24px;
+        }
+        
+        .editor-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #C76114;
+            color: #fff;
+        }
+        
+        .btn-primary:hover {
+            background: #e07020;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: #fff;
+        }
+        
+        .btn-success:hover {
+            background: #34ce57;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .btn-warning:hover {
+            background: #ffcd39;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: #fff;
+        }
+        
+        .btn-danger:hover {
+            background: #e4606d;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: #fff;
+        }
+        
+        .btn-info:hover {
+            background: #1fc8e3;
+        }
+        
+        /* 地图画布容器 */
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        #mapCanvas {
+            border: 3px solid #C76114;
+            cursor: crosshair;
+            image-rendering: pixelated;
+        }
+        
+        /* 右侧属性面板 */
+        .properties-panel {
+            width: 250px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            overflow-y: auto;
+            height: 100vh;
+            border-left: 2px solid #C76114;
+        }
+        
+        .properties-panel h2 {
+            color: #C76114;
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-align: center;
+            border-bottom: 1px solid #C76114;
+            padding-bottom: 10px;
+        }
+        
+        .property-group {
+            margin-bottom: 20px;
+        }
+        
+        .property-group label {
+            display: block;
+            color: #ffd700;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .property-group input,
+        .property-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #C76114;
+            border-radius: 5px;
+            background: #222;
+            color: #fff;
+            font-size: 14px;
+        }
+        
+        .property-group input:focus,
+        .property-group select:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+        
+        .current-element {
+            text-align: center;
+            padding: 20px;
+            background: #333;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .current-element img {
+            width: 64px;
+            height: 64px;
+            image-rendering: pixelated;
+            margin-bottom: 10px;
+        }
+        
+        .current-element .element-name {
+            color: #ffd700;
+            font-size: 16px;
+        }
+        
+        .current-element .element-type {
+            color: #888;
+            font-size: 12px;
+        }
+        
+        /* 坐标显示 */
+        .coords-display {
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .coords-display span {
+            color: #00ff00;
+            font-family: monospace;
+            font-size: 16px;
+        }
+        
+        /* 快捷键提示 */
+        .shortcuts {
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .shortcuts h4 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .shortcuts p {
+            color: #aaa;
+            margin: 5px 0;
+        }
+        
+        .shortcuts kbd {
+            background: #555;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: #1a1a2e;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #C76114;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-content h3 {
+            color: #C76114;
+            margin-bottom: 20px;
+        }
+        
+        .modal-content textarea {
+            width: 100%;
+            height: 300px;
+            background: #222;
+            color: #0f0;
+            border: 1px solid #C76114;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        /* 历史记录指示器 */
+        .history-indicator {
+            font-size: 12px;
+            color: #888;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 左侧工具栏 - 元素选择 -->
+    <div class="toolbar">
+        <h2>🎨 元素面板</h2>
+        
+        <!-- 地形类 -->
+        <div class="element-category">
+            <h3>🏔️ 地形</h3>
+            <div class="element-grid" id="terrainElements"></div>
+        </div>
+        
+        <!-- 门类 -->
+        <div class="element-category">
+            <h3>🚪 门</h3>
+            <div class="element-grid" id="doorElements"></div>
+        </div>
+        
+        <!-- 楼梯类 -->
+        <div class="element-category">
+            <h3>🪜 楼梯</h3>
+            <div class="element-grid" id="stairElements"></div>
+        </div>
+        
+        <!-- 道具类 -->
+        <div class="element-category">
+            <h3>🔑 道具</h3>
+            <div class="element-grid" id="itemElements"></div>
+        </div>
+        
+        <!-- 装备类 -->
+        <div class="element-category">
+            <h3>⚔️ 装备</h3>
+            <div class="element-grid" id="equipElements"></div>
+        </div>
+        
+        <!-- NPC类 -->
+        <div class="element-category">
+            <h3>👤 NPC</h3>
+            <div class="element-grid" id="npcElements"></div>
+        </div>
+        
+        <!-- 怪物类 -->
+        <div class="element-category">
+            <h3>👹 怪物</h3>
+            <div class="element-grid" id="monsterElements"></div>
+        </div>
+        
+        <!-- 特殊类 -->
+        <div class="element-category">
+            <h3>✨ 特殊</h3>
+            <div class="element-grid" id="specialElements"></div>
+        </div>
+    </div>
+    
+    <!-- 主编辑区 -->
+    <div class="editor-main">
+        <div class="editor-header">
+            <h1>🗺️ 魔塔地图编辑器</h1>
+            <div class="editor-controls">
+                <button class="btn btn-primary" onclick="newMap()">📄 新建</button>
+                <button class="btn btn-info" onclick="loadMapFile()">📂 加载</button>
+                <button class="btn btn-success" onclick="exportMap()">💾 导出</button>
+                <button class="btn btn-warning" onclick="undo()">↩️ 撤销</button>
+                <button class="btn btn-warning" onclick="redo()">↪️ 重做</button>
+                <button class="btn btn-danger" onclick="clearMap()">🗑️ 清空</button>
+                <button class="btn btn-info" onclick="testMap()">▶️ 测试</button>
+                <span class="history-indicator" id="historyIndicator"></span>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="mapCanvas"></canvas>
+        </div>
+    </div>
+    
+    <!-- 右侧属性面板 -->
+    <div class="properties-panel">
+        <h2>⚙️ 属性</h2>
+        
+        <!-- 当前选中元素 -->
+        <div class="current-element" id="currentElement">
+            <img src="" alt="" id="currentElementImg" style="display:none;">
+            <div class="element-name" id="currentElementName">未选择</div>
+            <div class="element-type" id="currentElementType">点击左侧元素选择</div>
+        </div>
+        
+        <!-- 坐标显示 -->
+        <div class="coords-display">
+            鼠标位置: <span id="coordsDisplay">--, --</span>
+        </div>
+        
+        <!-- 地图设置 -->
+        <div class="property-group">
+            <label>地图宽度 (格)</label>
+            <input type="number" id="mapWidth" value="11" min="5" max="30" onchange="resizeMap()">
+        </div>
+        
+        <div class="property-group">
+            <label>地图高度 (格)</label>
+            <input type="number" id="mapHeight" value="11" min="5" max="30" onchange="resizeMap()">
+        </div>
+        
+        <div class="property-group">
+            <label>填充元素</label>
+            <select id="fillElement">
+                <option value="0">地面 (0)</option>
+                <option value="1">墙壁 (1)</option>
+                <option value="19">石墙 (19)</option>
+                <option value="20">蓝墙 (20)</option>
+            </select>
+        </div>
+        
+        <div class="property-group">
+            <label>绘制模式</label>
+            <select id="drawMode">
+                <option value="single">单点绘制</option>
+                <option value="line">线段绘制</option>
+                <option value="rect">矩形绘制</option>
+                <option value="fill">填充绘制</option>
+            </select>
+        </div>
+        
+        <!-- 快捷键 -->
+        <div class="shortcuts">
+            <h4>⌨️ 快捷键</h4>
+            <p><kbd>Ctrl+Z</kbd> 撤销</p>
+            <p><kbd>Ctrl+Y</kbd> 重做</p>
+            <p><kbd>Ctrl+S</kbd> 导出</p>
+            <p><kbd>Del</kbd> 删除(填0)</p>
+            <p><kbd>1-4</kbd> 切换模式</p>
+            <p><kbd>鼠标右键</kbd> 取色</p>
+        </div>
+    </div>
+    
+    <!-- 导出模态框 -->
+    <div class="modal" id="exportModal">
+        <div class="modal-content">
+            <h3>📤 导出地图数据</h3>
+            <textarea id="exportData" readonly></textarea>
+            <div class="modal-buttons">
+                <button class="btn btn-success" onclick="copyExportData()">📋 复制</button>
+                <button class="btn btn-primary" onclick="downloadMap()">⬇️ 下载</button>
+                <button class="btn btn-danger" onclick="closeModal('exportModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 加载模态框 -->
+    <div class="modal" id="loadModal">
+        <div class="modal-content">
+            <h3>📥 加载地图数据</h3>
+            <textarea id="loadData" placeholder="粘贴地图数据或选择文件..."></textarea>
+            <div class="modal-buttons">
+                <input type="file" id="fileInput" accept=".lvl,.txt" style="display:none" onchange="handleFileSelect(event)">
+                <button class="btn btn-info" onclick="document.getElementById('fileInput').click()">📂 选择文件</button>
+                <button class="btn btn-success" onclick="loadFromTextarea()">✓ 加载</button>
+                <button class="btn btn-danger" onclick="closeModal('loadModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 配置
+        const BLOCK_SIZE = 45;
+        const IMAGE_PATH = 'resources/images/map0/';
+        
+        // 元素分类
+        const ELEMENT_CATEGORIES = {
+            terrain: ['0', '1', '19', '20'],
+            door: ['2', '3', '4', '15'],
+            stair: ['12', '13', '14'],
+            item: ['5', '6', '7', '8', '9', '10', '11', '21', '22', '23', '30', '31', '32', '33', '34', '35', '36', '38', '39'],
+            equip: ['71', '73', '75', '76', '78', '80'],
+            npc: ['24', '25', '26', '27', '28'],
+            monster: ['40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '70'],
+            special: ['hero', '181', '182', '183', '184', '185', '186', '187', '188', '189', '191', '192', '193', '194', '195', '196', '197', '198', '199', '202', '203', '340']
+        };
+        
+        // 元素名称映射
+        const ELEMENT_NAMES = {
+            '0': '地面', '1': '墙壁', '19': '石墙', '20': '蓝墙',
+            '2': '黄门', '3': '蓝门', '4': '红门', '15': '铁门',
+            '12': '下楼梯', '13': '上楼梯', '14': '传送门',
+            '5': '黄钥匙', '6': '蓝钥匙', '7': '红钥匙',
+            '8': '红药水', '9': '蓝宝石', '10': '红宝石', '11': '蓝药水',
+            '21': '剑', '22': '盾', '23': '圣光徽', '24': '仙女', '25': '盗贼', '26': '老人', '27': '商人', '28': '公主',
+            '30': '神圣盾', '31': '圣剑', '32': '神圣剑', '33': '风之罗盘', '34': '十字架', '35': '锤子', '36': '冰之法杖',
+            '38': '火之法杖', '39': '心之法杖',
+            '40': '绿头怪', '41': '红头怪', '42': '小蝙蝠', '43': '青头怪', '44': '骷髅人', '45': '骷髅士兵',
+            '46': '兽面人', '47': '初级卫兵', '48': '大蝙蝠', '49': '红蝙蝠', '50': '白衣武士', '51': '怪王',
+            '52': '红衣法师', '53': '红衣魔王', '54': '金甲卫士', '55': '金甲队长', '56': '骷髅队长',
+            '57': '灵法师', '58': '灵武士', '59': '冥灵魔王', '60': '麻衣法师', '61': '冥战士', '62': '冥队长',
+            '63': '初级法师', '64': '高级法师', '65': '石头怪人', '66': '兽面战士', '67': '双手剑士',
+            '68': '冥卫兵', '69': '高级卫兵', '70': '影子战士',
+            '71': '铁剑', '73': '钢剑', '75': '神圣剑', '76': '铁盾', '78': '钢盾', '80': '神圣盾',
+            '188': '血影', '198': '魔龙',
+            'hero': '英雄'
+        };
+        
+        // 状态
+        let mapData = [];
+        let mapWidth = 11;
+        let mapHeight = 11;
+        let selectedElement = '0';
+        let images = {};
+        let canvas, ctx;
+        let history = [];
+        let historyIndex = -1;
+        let isDrawing = false;
+        let lastDrawPos = null;
+        
+        // 初始化
+        window.onload = async function() {
+            canvas = document.getElementById('mapCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // 加载图片
+            await loadImages();
+            
+            // 初始化元素面板
+            initElementPanels();
+            
+            // 初始化地图
+            initMap();
+            
+            // 绑定事件
+            bindEvents();
+            
+            // 更新历史指示器
+            updateHistoryIndicator();
+        };
+        
+        // 加载所有元素图片
+        async function loadImages() {
+            const allElements = Object.values(ELEMENT_CATEGORIES).flat();
+            
+            for (const elem of allElements) {
+                if (elem === 'hero') {
+                    // 英雄使用特殊路径
+                    images[elem] = await loadImage('resources/images/player/down.png');
+                } else {
+                    images[elem] = await loadImage(IMAGE_PATH + elem + '.png');
+                }
+            }
+        }
+        
+        function loadImage(src) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = src;
+            });
+        }
+        
+        // 初始化元素面板
+        function initElementPanels() {
+            const panels = {
+                'terrainElements': ELEMENT_CATEGORIES.terrain,
+                'doorElements': ELEMENT_CATEGORIES.door,
+                'stairElements': ELEMENT_CATEGORIES.stair,
+                'itemElements': ELEMENT_CATEGORIES.item,
+                'equipElements': ELEMENT_CATEGORIES.equip,
+                'npcElements': ELEMENT_CATEGORIES.npc,
+                'monsterElements': ELEMENT_CATEGORIES.monster,
+                'specialElements': ELEMENT_CATEGORIES.special
+            };
+            
+            for (const [panelId, elements] of Object.entries(panels)) {
+                const panel = document.getElementById(panelId);
+                if (!panel) continue;
+                
+                for (const elem of elements) {
+                    const div = document.createElement('div');
+                    div.className = 'element-item';
+                    div.dataset.element = elem;
+                    div.title = ELEMENT_NAMES[elem] || elem;
+                    
+                    if (images[elem]) {
+                        const img = document.createElement('img');
+                        img.src = images[elem].src;
+                        div.appendChild(img);
+                    }
+                    
+                    const idSpan = document.createElement('span');
+                    idSpan.className = 'element-id';
+                    idSpan.textContent = elem;
+                    div.appendChild(idSpan);
+                    
+                    div.onclick = () => selectElement(elem);
+                    
+                    panel.appendChild(div);
+                }
+            }
+            
+            // 默认选中地面
+            selectElement('0');
+        }
+        
+        // 选择元素
+        function selectElement(elem) {
+            selectedElement = elem;
+            
+            // 更新UI
+            document.querySelectorAll('.element-item').forEach(item => {
+                item.classList.remove('selected');
+                if (item.dataset.element === elem) {
+                    item.classList.add('selected');
+                }
+            });
+            
+            // 更新当前元素显示
+            const img = document.getElementById('currentElementImg');
+            const name = document.getElementById('currentElementName');
+            const type = document.getElementById('currentElementType');
+            
+            if (images[elem]) {
+                img.src = images[elem].src;
+                img.style.display = 'block';
+            } else {
+                img.style.display = 'none';
+            }
+            
+            name.textContent = ELEMENT_NAMES[elem] || elem;
+            type.textContent = `ID: ${elem}`;
+        }
+        
+        // 初始化地图
+        function initMap() {
+            mapWidth = parseInt(document.getElementById('mapWidth').value);
+            mapHeight = parseInt(document.getElementById('mapHeight').value);
+            const fillElem = document.getElementById('fillElement').value;
+            
+            mapData = [];
+            for (let y = 0; y < mapHeight; y++) {
+                const row = [];
+                for (let x = 0; x < mapWidth; x++) {
+                    row.push(fillElem);
+                }
+                mapData.push(row);
+            }
+            
+            resizeCanvas();
+            renderMap();
+            saveHistory();
+        }
+        
+        // 调整画布大小
+        function resizeCanvas() {
+            canvas.width = mapWidth * BLOCK_SIZE;
+            canvas.height = mapHeight * BLOCK_SIZE;
+        }
+        
+        // 调整地图大小
+        function resizeMap() {
+            const newWidth = parseInt(document.getElementById('mapWidth').value);
+            const newHeight = parseInt(document.getElementById('mapHeight').value);
+            const fillElem = document.getElementById('fillElement').value;
+            
+            const newData = [];
+            for (let y = 0; y < newHeight; y++) {
+                const row = [];
+                for (let x = 0; x < newWidth; x++) {
+                    if (y < mapHeight && x < mapWidth) {
+                        row.push(mapData[y][x]);
+                    } else {
+                        row.push(fillElem);
+                    }
+                }
+                newData.push(row);
+            }
+            
+            mapData = newData;
+            mapWidth = newWidth;
+            mapHeight = newHeight;
+            
+            resizeCanvas();
+            renderMap();
+            saveHistory();
+        }
+        
+        // 渲染地图
+        function renderMap() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            for (let y = 0; y < mapHeight; y++) {
+                for (let x = 0; x < mapWidth; x++) {
+                    const elem = mapData[y][x];
+                    const px = x * BLOCK_SIZE;
+                    const py = y * BLOCK_SIZE;
+                    
+                    // 绘制背景格子
+                    ctx.fillStyle = '#222';
+                    ctx.fillRect(px, py, BLOCK_SIZE, BLOCK_SIZE);
+                    ctx.strokeStyle = '#444';
+                    ctx.strokeRect(px, py, BLOCK_SIZE, BLOCK_SIZE);
+                    
+                    // 绘制元素
+                    if (images[elem]) {
+                        ctx.drawImage(images[elem], px + 2, py + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4);
+                    } else if (elem !== '0' && elem !== '00') {
+                        // 未知元素显示ID
+                        ctx.fillStyle = '#f00';
+                        ctx.font = '10px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(elem, px + BLOCK_SIZE/2, py + BLOCK_SIZE/2 + 4);
+                    }
+                }
+            }
+        }
+        
+        // 绑定事件
+        function bindEvents() {
+            // 画布鼠标事件
+            canvas.addEventListener('mousedown', onCanvasMouseDown);
+            canvas.addEventListener('mousemove', onCanvasMouseMove);
+            canvas.addEventListener('mouseup', onCanvasMouseUp);
+            canvas.addEventListener('mouseleave', onCanvasMouseUp);
+            canvas.addEventListener('contextmenu', onCanvasRightClick);
+            
+            // 键盘事件
+            document.addEventListener('keydown', onKeyDown);
+        }
+        
+        function getGridPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / BLOCK_SIZE);
+            const y = Math.floor((e.clientY - rect.top) / BLOCK_SIZE);
+            return { x: Math.max(0, Math.min(x, mapWidth - 1)), y: Math.max(0, Math.min(y, mapHeight - 1)) };
+        }
+        
+        function onCanvasMouseDown(e) {
+            if (e.button === 0) { // 左键
+                isDrawing = true;
+                const pos = getGridPos(e);
+                drawAt(pos.x, pos.y);
+                lastDrawPos = pos;
+            }
+        }
+        
+        function onCanvasMouseMove(e) {
+            const pos = getGridPos(e);
+            document.getElementById('coordsDisplay').textContent = `${pos.x}, ${pos.y}`;
+            
+            if (isDrawing) {
+                const mode = document.getElementById('drawMode').value;
+                if (mode === 'single' || mode === 'line') {
+                    if (!lastDrawPos || pos.x !== lastDrawPos.x || pos.y !== lastDrawPos.y) {
+                        drawAt(pos.x, pos.y);
+                        lastDrawPos = pos;
+                    }
+                }
+            }
+        }
+        
+        function onCanvasMouseUp(e) {
+            if (isDrawing) {
+                isDrawing = false;
+                lastDrawPos = null;
+                saveHistory();
+            }
+        }
+        
+        function onCanvasRightClick(e) {
+            e.preventDefault();
+            const pos = getGridPos(e);
+            const elem = mapData[pos.y][pos.x];
+            selectElement(elem);
+        }
+        
+        function drawAt(x, y) {
+            if (x >= 0 && x < mapWidth && y >= 0 && y < mapHeight) {
+                mapData[y][x] = selectedElement;
+                renderMap();
+            }
+        }
+        
+        function onKeyDown(e) {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'z') {
+                    e.preventDefault();
+                    undo();
+                } else if (e.key === 'y') {
+                    e.preventDefault();
+                    redo();
+                } else if (e.key === 's') {
+                    e.preventDefault();
+                    exportMap();
+                }
+            } else if (e.key === 'Delete' || e.key === 'Backspace') {
+                selectElement('0');
+            } else if (e.key >= '1' && e.key <= '4') {
+                const modes = ['single', 'line', 'rect', 'fill'];
+                document.getElementById('drawMode').value = modes[parseInt(e.key) - 1];
+            }
+        }
+        
+        // 历史记录
+        function saveHistory() {
+            // 删除当前位置之后的历史
+            history = history.slice(0, historyIndex + 1);
+            
+            // 保存当前状态
+            history.push(JSON.stringify(mapData));
+            historyIndex = history.length - 1;
+            
+            // 限制历史长度
+            if (history.length > 50) {
+                history.shift();
+                historyIndex--;
+            }
+            
+            updateHistoryIndicator();
+        }
+        
+        function undo() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                mapData = JSON.parse(history[historyIndex]);
+                mapWidth = mapData[0].length;
+                mapHeight = mapData.length;
+                document.getElementById('mapWidth').value = mapWidth;
+                document.getElementById('mapHeight').value = mapHeight;
+                resizeCanvas();
+                renderMap();
+                updateHistoryIndicator();
+            }
+        }
+        
+        function redo() {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                mapData = JSON.parse(history[historyIndex]);
+                mapWidth = mapData[0].length;
+                mapHeight = mapData.length;
+                document.getElementById('mapWidth').value = mapWidth;
+                document.getElementById('mapHeight').value = mapHeight;
+                resizeCanvas();
+                renderMap();
+                updateHistoryIndicator();
+            }
+        }
+        
+        function updateHistoryIndicator() {
+            const indicator = document.getElementById('historyIndicator');
+            indicator.textContent = `历史: ${historyIndex + 1}/${history.length}`;
+        }
+        
+        // 新建地图
+        function newMap() {
+            if (confirm('确定要新建地图吗？当前地图将丢失。')) {
+                history = [];
+                historyIndex = -1;
+                initMap();
+            }
+        }
+        
+        // 清空地图
+        function clearMap() {
+            if (confirm('确定要清空地图吗？')) {
+                const fillElem = document.getElementById('fillElement').value;
+                for (let y = 0; y < mapHeight; y++) {
+                    for (let x = 0; x < mapWidth; x++) {
+                        mapData[y][x] = fillElem;
+                    }
+                }
+                renderMap();
+                saveHistory();
+            }
+        }
+        
+        // 导出地图
+        function exportMap() {
+            let output = '';
+            for (let y = 0; y < mapHeight; y++) {
+                output += mapData[y].join(', ') + '\n';
+            }
+            
+            document.getElementById('exportData').value = output;
+            document.getElementById('exportModal').classList.add('active');
+        }
+        
+        function copyExportData() {
+            const textarea = document.getElementById('exportData');
+            textarea.select();
+            document.execCommand('copy');
+            alert('已复制到剪贴板！');
+        }
+        
+        function downloadMap() {
+            const data = document.getElementById('exportData').value;
+            const blob = new Blob([data], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'custom_map.lvl';
+            a.click();
+            
+            URL.revokeObjectURL(url);
+        }
+        
+        // 加载地图
+        function loadMapFile() {
+            document.getElementById('loadData').value = '';
+            document.getElementById('loadModal').classList.add('active');
+        }
+        
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('loadData').value = e.target.result;
+                };
+                reader.readAsText(file);
+            }
+        }
+        
+        function loadFromTextarea() {
+            const data = document.getElementById('loadData').value.trim();
+            if (!data) {
+                alert('请输入地图数据！');
+                return;
+            }
+            
+            try {
+                const lines = data.split('\n').filter(l => l.trim());
+                const newData = [];
+                
+                for (const line of lines) {
+                    const row = line.split(',').map(c => c.trim());
+                    newData.push(row);
+                }
+                
+                if (newData.length > 0 && newData[0].length > 0) {
+                    mapData = newData;
+                    mapHeight = newData.length;
+                    mapWidth = newData[0].length;
+                    
+                    document.getElementById('mapWidth').value = mapWidth;
+                    document.getElementById('mapHeight').value = mapHeight;
+                    
+                    resizeCanvas();
+                    renderMap();
+                    saveHistory();
+                    
+                    closeModal('loadModal');
+                    alert('地图加载成功！');
+                } else {
+                    alert('地图数据格式错误！');
+                }
+            } catch (e) {
+                alert('解析地图数据失败：' + e.message);
+            }
+        }
+        
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        
+        // 测试地图
+        function testMap() {
+            // 将地图保存到localStorage，然后跳转到游戏页面
+            localStorage.setItem('editor_test_map', JSON.stringify(mapData));
+            alert('测试功能开发中...\n地图已保存，请手动将导出的.lvl文件替换到resources/levels/目录下进行测试。');
+        }
+    </script>
+</body>
+</html>
