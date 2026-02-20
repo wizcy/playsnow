@@ -19,7 +19,7 @@ export default function PrivacyPolicy() {
       <h2>Changes to This Policy</h2>
       <p>We may update this policy from time to time. Changes will be posted on this page with an updated date.</p>
       <h2>Contact Us</h2>
-      <p>If you have questions about this privacy policy, please contact us at contact@playsnow.top.</p>
+      <p>If you have questions about this privacy policy, please contact us at wencyapp@gmail.com.</p>
     </main>
   );
 }

@@ -17,7 +17,7 @@ export default function Terms() {
       <h2>Changes</h2>
       <p>We reserve the right to modify these terms at any time. Continued use of the service constitutes acceptance of updated terms.</p>
       <h2>Contact</h2>
-      <p>Questions? Email us at contact@playsnow.top.</p>
+      <p>Questions? Email us at wencyapp@gmail.com.</p>
     </main>
   );
 }

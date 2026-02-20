@@ -12,7 +12,7 @@ export default function About() {
       <h2>How It Works</h2>
       <p>Every game on PlayNow is built with HTML5 and runs entirely in your browser. There is nothing to install and no account required. Our games work on desktop computers, laptops, tablets, and smartphones.</p>
       <h2>Contact</h2>
-      <p>Have feedback, suggestions, or questions? We would love to hear from you at <a href="mailto:contact@playsnow.top">contact@playsnow.top</a>.</p>
+      <p>Have feedback, suggestions, or questions? We would love to hear from you at <a href="mailto:wencyapp@gmail.com">wencyapp@gmail.com</a>.</p>
     </main>
   );
 }
