@@ -8,7 +8,7 @@ export default function Contact() {
       <h1>Contact Us</h1>
       <p>We would love to hear from you! Whether you have feedback, game suggestions, or questions, feel free to reach out.</p>
       <h2>Email</h2>
-      <p><a href="mailto:contact@playnow.fun">contact@playnow.fun</a></p>
+      <p><a href="mailto:contact@playsnow.top">contact@playsnow.top</a></p>
       <h2>Response Time</h2>
       <p>We typically respond within 48 hours.</p>
     </main>

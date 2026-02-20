@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: { default: "PlayNow - Free Online Games | Play Instantly", template: "%s | PlayNow" },
   description: "Play the best free online games instantly in your browser. No downloads, no sign-ups. 2048, Snake, Tetris, Chess and more classic games.",
   keywords: "free online games, browser games, play games online, no download games, unblocked games",
-  metadataBase: new URL("https://playnow.fun"),
+  metadataBase: new URL("https://playsnow.top"),
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

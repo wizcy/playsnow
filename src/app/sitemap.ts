@@ -2,7 +2,7 @@ import { games, categories } from "@/lib/games";
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://playnow.fun";
+  const base = "https://playsnow.top";
   const gamePages = games.map((g) => ({ url: `${base}/games/${g.slug}`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.8 }));
   const catPages = categories.map((c) => ({ url: `${base}/category/${c.slug}`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.6 }));
   return [

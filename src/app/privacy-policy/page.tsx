@@ -7,7 +7,7 @@ export default function PrivacyPolicy() {
     <main className="max-w-3xl mx-auto px-4 py-12 prose prose-invert prose-gray">
       <h1>Privacy Policy</h1>
       <p><em>Last updated: February 2026</em></p>
-      <p>PlayNow (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) operates the website playnow.fun. This page informs you of our policies regarding the collection, use, and disclosure of personal information.</p>
+      <p>PlayNow (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) operates the website playsnow.top. This page informs you of our policies regarding the collection, use, and disclosure of personal information.</p>
       <h2>Information We Collect</h2>
       <p>We do not require registration or collect personal information to play our games. We may collect anonymous usage data through Google Analytics, including pages visited, time spent, device type, and browser information.</p>
       <h2>Cookies</h2>
@@ -19,7 +19,7 @@ export default function PrivacyPolicy() {
       <h2>Changes to This Policy</h2>
       <p>We may update this policy from time to time. Changes will be posted on this page with an updated date.</p>
       <h2>Contact Us</h2>
-      <p>If you have questions about this privacy policy, please contact us at contact@playnow.fun.</p>
+      <p>If you have questions about this privacy policy, please contact us at contact@playsnow.top.</p>
     </main>
   );
 }

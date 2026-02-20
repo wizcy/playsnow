@@ -7,7 +7,7 @@ export default function Terms() {
     <main className="max-w-3xl mx-auto px-4 py-12 prose prose-invert prose-gray">
       <h1>Terms of Service</h1>
       <p><em>Last updated: February 2026</em></p>
-      <p>By accessing PlayNow (playnow.fun), you agree to these terms.</p>
+      <p>By accessing PlayNow (playsnow.top), you agree to these terms.</p>
       <h2>Use of Service</h2>
       <p>PlayNow provides free browser-based games for entertainment. You may use our service for personal, non-commercial purposes. You agree not to attempt to disrupt, hack, or reverse-engineer our games or website.</p>
       <h2>Intellectual Property</h2>
@@ -17,7 +17,7 @@ export default function Terms() {
       <h2>Changes</h2>
       <p>We reserve the right to modify these terms at any time. Continued use of the service constitutes acceptance of updated terms.</p>
       <h2>Contact</h2>
-      <p>Questions? Email us at contact@playnow.fun.</p>
+      <p>Questions? Email us at contact@playsnow.top.</p>
     </main>
   );
 }
