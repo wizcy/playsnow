@@ -14,11 +14,19 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   const game = getGame(params.slug);
   if (!game) return {};
+  const canonical = `https://playsnow.top/games/${game.slug}`;
+  const description = `${game.description} Play ${game.title} free online — no download, no sign-up required. ${game.keywords[0].charAt(0).toUpperCase() + game.keywords[0].slice(1)} that works on desktop and mobile.`;
   return {
-    title: `${game.title} - Play Free Online`,
-    description: game.description,
+    title: `Play ${game.title} Online Free - No Download`,
+    description,
     keywords: game.keywords.join(", "),
-    openGraph: { title: `Play ${game.title} Online Free`, description: game.description },
+    alternates: { canonical },
+    openGraph: {
+      title: `Play ${game.title} Online Free - No Download | PlayNow`,
+      description,
+      url: canonical,
+      type: "website",
+    },
   };
 }
 
@@ -32,12 +40,23 @@ export default function GamePage({ params }: { params: { slug: string } }) {
     "@context": "https://schema.org",
     "@type": "VideoGame",
     name: game.title,
+    url: `https://playsnow.top/games/${game.slug}`,
     description: game.description,
     genre: game.category,
     playMode: "SinglePlayer",
     applicationCategory: "Game",
     operatingSystem: "Any",
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://playsnow.top/" },
+      { "@type": "ListItem", position: 2, name: `${game.category} Games`, item: `https://playsnow.top/category/${game.category.toLowerCase()}` },
+      { "@type": "ListItem", position: 3, name: game.title, item: `https://playsnow.top/games/${game.slug}` },
+    ],
   };
 
   const faqSchema = {
@@ -53,6 +72,7 @@ export default function GamePage({ params }: { params: { slug: string } }) {
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       {/* Breadcrumb */}

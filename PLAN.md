@@ -23,7 +23,7 @@
 - [ ] **Wordle 每日词系统** — 每天自动换词，用户每天回来，SEO 长尾词巨大
 - [ ] **首页改版** — 大 banner 推荐 + 今日挑战入口 + 分类筛选
 - [ ] **游戏加载优化** — loading skeleton，消除白屏
-- [ ] **部署上线** — GitHub 仓库 + Cloudflare Pages + 域名
+- [x] **部署上线** — GitHub 仓库 + Cloudflare Pages + 域名
 
 ### 🟡 P1 — 重要，影响留存
 

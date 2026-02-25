@@ -27,7 +27,7 @@ export default function Home() {
       {/* Hero */}
       <section className="text-center py-16 mb-10 rounded-2xl" style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)" }}>
         <h1 className="text-5xl font-bold mb-3">Play Free Online Games</h1>
-        <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">15 classic games, no download needed</p>
+        <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">{games.length} classic games, no download needed</p>
         <Link href="/games/wordle" className="inline-flex items-center gap-2 bg-yellow-500 text-gray-900 font-semibold px-6 py-3 rounded-lg hover:bg-yellow-400 transition text-lg">
           🎯 Today&apos;s Challenge: Wordle
         </Link>

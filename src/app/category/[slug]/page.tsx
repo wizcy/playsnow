@@ -14,6 +14,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   return {
     title: `${cat.name} Games - Play Free Online`,
     description: cat.description,
+    alternates: { canonical: `https://playsnow.top/category/${params.slug}` },
   };
 }
 
