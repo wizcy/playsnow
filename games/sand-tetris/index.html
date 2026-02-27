@@ -7,58 +7,59 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  background: #1a1008;
-  color: #e8d5a3;
-  font-family: 'Segoe UI', sans-serif;
+  background: #0d0d1a;
+  color: #ccc;
+  font-family: 'Segoe UI', Arial, sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  padding: 10px;
+  padding: 8px 4px;
   overflow-x: hidden;
 }
 h1 {
-  font-size: 1.4rem;
-  color: #f0c060;
+  font-size: 1.3rem;
+  color: #e8c060;
   margin-bottom: 8px;
-  text-shadow: 0 0 10px rgba(240,192,96,0.5);
-  letter-spacing: 2px;
+  letter-spacing: 3px;
+  text-shadow: 0 0 12px rgba(232,192,96,0.4);
 }
-#game-wrapper {
+#wrap {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: flex-start;
 }
 #game-canvas {
-  border: 2px solid #5a3a10;
-  box-shadow: 0 0 20px rgba(200,140,40,0.3);
   display: block;
+  border: 1px solid #333;
+  box-shadow: 0 0 24px rgba(100,80,40,0.4);
   image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
-#side-panel {
+#panel {
   width: 110px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
-.panel-box {
-  background: #2a1a08;
-  border: 1px solid #5a3a10;
+.box {
+  background: #12122a;
+  border: 1px solid #2a2a4a;
   border-radius: 6px;
-  padding: 8px;
+  padding: 7px 8px;
   text-align: center;
 }
-.panel-box h3 {
-  font-size: 0.65rem;
-  color: #a07030;
+.box h3 {
+  font-size: 0.6rem;
+  color: #666;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
-.panel-box .value {
-  font-size: 1.3rem;
+.box .val {
+  font-size: 1.25rem;
   font-weight: bold;
-  color: #f0c060;
+  color: #e8c060;
 }
 #next-canvas {
   display: block;
@@ -67,587 +68,556 @@ h1 {
 }
 #btn-start {
   width: 100%;
-  padding: 8px;
-  background: #8b4513;
+  padding: 9px 0;
+  background: #7a3a10;
   color: #f0c060;
-  border: 1px solid #c07030;
+  border: 1px solid #b06020;
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: bold;
   cursor: pointer;
   letter-spacing: 1px;
-  transition: background 0.2s;
+  transition: background 0.15s;
 }
-#btn-start:hover { background: #a0521a; }
-#mobile-controls {
+#btn-start:hover { background: #9a4a18; }
+#overlay {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(5,5,15,0.93);
+  border: 1px solid #b06020;
+  border-radius: 10px;
+  padding: 22px 30px;
+  text-align: center;
+  z-index: 10;
+}
+#overlay h2 { color: #e8c060; font-size: 1.3rem; margin-bottom: 8px; }
+#overlay p  { color: #a08040; font-size: 0.82rem; line-height: 1.5; }
+#canvas-wrap { position: relative; }
+#mobile-btns {
   display: none;
   gap: 8px;
   margin-top: 10px;
+  justify-content: center;
   flex-wrap: wrap;
-  justify-content: center;
 }
-.ctrl-btn {
-  width: 56px;
-  height: 56px;
-  background: #2a1a08;
-  border: 1px solid #5a3a10;
+.mbtn {
+  width: 58px; height: 58px;
+  background: #12122a;
+  border: 1px solid #2a2a4a;
   border-radius: 8px;
-  color: #f0c060;
-  font-size: 1.4rem;
+  color: #e8c060;
+  font-size: 1.3rem;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.1s;
 }
-.ctrl-btn:active { background: #4a2a10; }
-#msg-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(10,6,2,0.92);
-  border: 2px solid #c07030;
-  border-radius: 10px;
-  padding: 20px 28px;
-  text-align: center;
-  pointer-events: none;
-  z-index: 10;
-}
-#msg-overlay h2 { color: #f0c060; font-size: 1.3rem; margin-bottom: 8px; }
-#msg-overlay p  { color: #c0a060; font-size: 0.85rem; }
-#canvas-container { position: relative; }
-@media (max-width: 520px) {
-  #mobile-controls { display: flex; }
-  h1 { font-size: 1.1rem; }
-  #side-panel { width: 90px; }
-  .panel-box .value { font-size: 1.1rem; }
+.mbtn:active { background: #2a2a5a; }
+@media (max-width: 540px) {
+  #mobile-btns { display: flex; }
+  h1 { font-size: 1rem; }
+  #panel { width: 88px; }
+  .box .val { font-size: 1rem; }
 }
 </style>
 </head>
 <body>
 <h1>⏳ SAND TETRIS</h1>
-<div id="game-wrapper">
-  <div id="canvas-container">
+<div id="wrap">
+  <div id="canvas-wrap">
     <canvas id="game-canvas"></canvas>
-    <div id="msg-overlay">
+    <div id="overlay">
       <h2>SAND TETRIS</h2>
-      <p>Press Start or Space</p>
+      <p>Blocks dissolve into sand<br>Press Start or Space</p>
     </div>
   </div>
-  <div id="side-panel">
-    <div class="panel-box">
+  <div id="panel">
+    <div class="box">
       <h3>Next</h3>
-      <canvas id="next-canvas" width="80" height="80"></canvas>
+      <canvas id="next-canvas" width="88" height="88"></canvas>
     </div>
-    <div class="panel-box">
-      <h3>Score</h3>
-      <div class="value" id="score-val">0</div>
-    </div>
-    <div class="panel-box">
-      <h3>Level</h3>
-      <div class="value" id="level-val">1</div>
-    </div>
-    <div class="panel-box">
-      <h3>Lines</h3>
-      <div class="value" id="lines-val">0</div>
-    </div>
+    <div class="box"><h3>Score</h3><div class="val" id="v-score">0</div></div>
+    <div class="box"><h3>Level</h3><div class="val" id="v-level">1</div></div>
+    <div class="box"><h3>Lines</h3><div class="val" id="v-lines">0</div></div>
     <button id="btn-start">START</button>
   </div>
 </div>
-<div id="mobile-controls">
-  <div class="ctrl-btn" id="btn-left">◀</div>
-  <div class="ctrl-btn" id="btn-rotate">🔄</div>
-  <div class="ctrl-btn" id="btn-right">▶</div>
-  <div class="ctrl-btn" id="btn-down">▼</div>
+<div id="mobile-btns">
+  <div class="mbtn" id="mb-left">◀</div>
+  <div class="mbtn" id="mb-rot">↻</div>
+  <div class="mbtn" id="mb-right">▶</div>
+  <div class="mbtn" id="mb-drop">▼▼</div>
 </div>
 <script>
-// ─── Constants ───────────────────────────────────────────────────────────────
-const COLS = 10, ROWS = 20;
-const SAND_SIZE = 4; // px per sand particle
-const SAND_COLS = COLS * SAND_SIZE;  // 40
-const SAND_ROWS = ROWS * SAND_SIZE;  // 80
-const DENSITY_THRESHOLD = 0.90;
+// ── Constants ──────────────────────────────────────────────────────────────
+const COLS = 80, ROWS = 160;          // sand grid
+const BLOCK = 4;                       // sand px per tetromino cell
+const TCOLS = COLS / BLOCK;            // 20 tetromino columns
+const TROWS = ROWS / BLOCK;            // 40 tetromino rows
+const DENSITY = 0.85;
+const CANVAS_W = COLS * 1;             // will scale via CSS / pixel ratio
+const CANVAS_H = ROWS * 1;
 
-// Tetromino shapes (each cell = 1 block = SAND_SIZE×SAND_SIZE sand grid cells)
-const SHAPES = {
-  I: { cells: [[0,1],[1,1],[2,1],[3,1]], color: [80,220,220] },
-  O: { cells: [[0,0],[1,0],[0,1],[1,1]], color: [240,200,60] },
-  T: { cells: [[1,0],[0,1],[1,1],[2,1]], color: [180,80,220] },
-  S: { cells: [[1,0],[2,0],[0,1],[1,1]], color: [80,200,80] },
-  Z: { cells: [[0,0],[1,0],[1,1],[2,1]], color: [220,60,60] },
-  J: { cells: [[0,0],[0,1],[1,1],[2,1]], color: [80,100,220] },
-  L: { cells: [[2,0],[0,1],[1,1],[2,1]], color: [240,140,40] },
-};
-const SHAPE_KEYS = Object.keys(SHAPES);
-
-// ─── Canvas setup ─────────────────────────────────────────────────────────────
+// ── Canvas ─────────────────────────────────────────────────────────────────
 const canvas = document.getElementById('game-canvas');
-const ctx = canvas.getContext('2d');
-const nextCanvas = document.getElementById('next-canvas');
-const nextCtx = nextCanvas.getContext('2d');
+const ctx    = canvas.getContext('2d');
+const ncanvas = document.getElementById('next-canvas');
+const nctx    = ncanvas.getContext('2d');
 
-function resize() {
-  const maxH = window.innerHeight - 160;
-  const maxW = window.innerWidth - 140;
-  const cellPx = Math.max(4, Math.min(Math.floor(maxH / ROWS), Math.floor(maxW / COLS)));
-  const sandPx = Math.max(1, Math.floor(cellPx / SAND_SIZE));
-  canvas._sandPx = sandPx;
-  canvas.width  = SAND_COLS * sandPx;
-  canvas.height = SAND_ROWS * sandPx;
+// Responsive: fit screen
+function setCanvasSize() {
+  const maxH = window.innerHeight - 130;
+  const maxW = window.innerWidth  - 130;
+  const scale = Math.max(1, Math.min(
+    Math.floor(maxH / ROWS),
+    Math.floor(maxW / COLS)
+  ));
+  canvas.width  = COLS;
+  canvas.height = ROWS;
+  canvas.style.width  = (COLS  * scale) + 'px';
+  canvas.style.height = (ROWS  * scale) + 'px';
+  canvas._scale = scale;
 }
-resize();
-window.addEventListener('resize', () => { resize(); if (game) game.draw(); });
+setCanvasSize();
+window.addEventListener('resize', setCanvasSize);
 
-// ─── Sand Grid ────────────────────────────────────────────────────────────────
-// grid[r][c] = null | [r,g,b]
-class SandGrid {
-  constructor() {
-    this.cells = new Array(SAND_ROWS).fill(null).map(() => new Array(SAND_COLS).fill(null));
-  }
-  get(r, c) {
-    if (r < 0 || r >= SAND_ROWS || c < 0 || c >= SAND_COLS) return true; // treat OOB as solid
-    return this.cells[r][c];
-  }
-  set(r, c, color) { if (r >= 0 && r < SAND_ROWS && c >= 0 && c < SAND_COLS) this.cells[r][c] = color; }
-  isEmpty(r, c) { return this.get(r, c) === null; }
+// ── Tetromino definitions ──────────────────────────────────────────────────
+// Each shape: array of [col, row] in tetromino coords (0-based)
+const SHAPES = [
+  { name:'I', color:0x00FFFFFF, cells:[[0,1],[1,1],[2,1],[3,1]] },
+  { name:'O', color:0xFFD700FF, cells:[[0,0],[1,0],[0,1],[1,1]] },
+  { name:'T', color:0x9B59B6FF, cells:[[1,0],[0,1],[1,1],[2,1]] },
+  { name:'S', color:0x2ECC71FF, cells:[[1,0],[2,0],[0,1],[1,1]] },
+  { name:'Z', color:0xE74C3CFF, cells:[[0,0],[1,0],[1,1],[2,1]] },
+  { name:'J', color:0x3498DBFF, cells:[[0,0],[0,1],[1,1],[2,1]] },
+  { name:'L', color:0xE67E22FF, cells:[[2,0],[0,1],[1,1],[2,1]] },
+];
 
-  // Simulate one physics step — process bottom-up for stability
-  step() {
-    // Shuffle columns each row to avoid directional bias
-    const colOrder = Array.from({length: SAND_COLS}, (_, i) => i);
-    for (let r = SAND_ROWS - 2; r >= 0; r--) {
-      // shuffle col order for this row
-      for (let i = colOrder.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [colOrder[i], colOrder[j]] = [colOrder[j], colOrder[i]];
-      }
-      for (const c of colOrder) {
-        const color = this.cells[r][c];
-        if (!color) continue;
-        // 1. straight down
-        if (this.isEmpty(r + 1, c)) {
-          this.cells[r + 1][c] = color;
-          this.cells[r][c] = null;
-          continue;
-        }
-        // 2. diagonal — pick left/right randomly
-        const goLeft = Math.random() < 0.5;
-        const d1 = goLeft ? -1 : 1;
-        const d2 = goLeft ?  1 : -1;
-        if (this.isEmpty(r + 1, c + d1)) {
-          this.cells[r + 1][c + d1] = color;
-          this.cells[r][c] = null;
-        } else if (this.isEmpty(r + 1, c + d2)) {
-          this.cells[r + 1][c + d2] = color;
-          this.cells[r][c] = null;
-        }
-        // else: stay put
-      }
-    }
-  }
+function randShape() { return SHAPES[Math.floor(Math.random() * SHAPES.length)]; }
 
-  // Check rows for ≥90% density, return list of cleared rows
-  checkLines() {
-    const cleared = [];
-    for (let r = 0; r < SAND_ROWS; r++) {
-      let count = 0;
-      for (let c = 0; c < SAND_COLS; c++) if (this.cells[r][c]) count++;
-      if (count / SAND_COLS >= DENSITY_THRESHOLD) cleared.push(r);
-    }
-    return cleared;
-  }
+// ── Sand grid ──────────────────────────────────────────────────────────────
+// Uint32Array: 0 = empty, else RGBA packed (R<<24|G<<16|B<<8|A)
+let grid   = new Uint32Array(COLS * ROWS);
+let stable = new Uint8Array(COLS * ROWS);  // stability counter
 
-  clearRows(rows) {
-    const rowSet = new Set(rows);
-    for (const r of rowSet) {
-      for (let c = 0; c < SAND_COLS; c++) this.cells[r][c] = null;
-    }
-    // Let sand above fall — run extra physics steps
-    for (let i = 0; i < 30; i++) this.step();
-  }
+function gIdx(r, c) { return r * COLS + c; }
 
-  // Check if any sand has reached the top 4 rows (game over zone)
-  isOverflowed() {
-    for (let r = 0; r < SAND_SIZE; r++)
-      for (let c = 0; c < SAND_COLS; c++)
-        if (this.cells[r][c]) return true;
-    return false;
-  }
+function colorVariant(rgba) {
+  // ±10% brightness variation per particle
+  const r = (rgba >>> 24) & 0xff;
+  const g = (rgba >>> 16) & 0xff;
+  const b = (rgba >>>  8) & 0xff;
+  const v = (Math.random() - 0.5) * 0.2;
+  const clamp = x => Math.max(0, Math.min(255, Math.round(x)));
+  return (clamp(r*(1+v)) << 24) | (clamp(g*(1+v)) << 16) | (clamp(b*(1+v)) << 8) | 0xff;
 }
 
-// ─── Tetromino ────────────────────────────────────────────────────────────────
+// ── Physics ────────────────────────────────────────────────────────────────
+let minActiveRow = ROWS - 1;
+
+function updateSand() {
+  let newMin = ROWS - 1;
+  const leftToRight = Math.random() > 0.5;
+
+  for (let row = ROWS - 2; row >= 0; row--) {
+    for (let i = 0; i < COLS; i++) {
+      const col = leftToRight ? i : COLS - 1 - i;
+      const idx = gIdx(row, col);
+      if (grid[idx] === 0) continue;
+      if (stable[idx] >= 3) { if (row < newMin) newMin = row; continue; }
+
+      const color = grid[idx];
+      const below = gIdx(row + 1, col);
+
+      if (grid[below] === 0) {
+        grid[below] = color; grid[idx] = 0;
+        stable[below] = 0;   stable[idx] = 0;
+        if (row + 1 < newMin) newMin = row + 1;
+        continue;
+      }
+      const dl = col - 1, dr = col + 1;
+      const canL = dl >= 0   && grid[gIdx(row+1, dl)] === 0;
+      const canR = dr < COLS && grid[gIdx(row+1, dr)] === 0;
+
+      if (canL && canR) {
+        const nc = Math.random() > 0.5 ? dl : dr;
+        const ni = gIdx(row+1, nc);
+        grid[ni] = color; grid[idx] = 0;
+        stable[ni] = 0;   stable[idx] = 0;
+        if (row+1 < newMin) newMin = row+1;
+      } else if (canL) {
+        const ni = gIdx(row+1, dl);
+        grid[ni] = color; grid[idx] = 0;
+        stable[ni] = 0;   stable[idx] = 0;
+        if (row+1 < newMin) newMin = row+1;
+      } else if (canR) {
+        const ni = gIdx(row+1, dr);
+        grid[ni] = color; grid[idx] = 0;
+        stable[ni] = 0;   stable[idx] = 0;
+        if (row+1 < newMin) newMin = row+1;
+      } else {
+        stable[idx]++;
+        if (row < newMin) newMin = row;
+      }
+    }
+  }
+  minActiveRow = Math.max(0, newMin - 2);
+}
+
+// ── Line clear ─────────────────────────────────────────────────────────────
+function checkLines() {
+  let cleared = 0;
+  for (let row = ROWS - 1; row >= 0; row--) {
+    let count = 0;
+    for (let c = 0; c < COLS; c++) if (grid[gIdx(row, c)]) count++;
+    if (count / COLS >= DENSITY) {
+      // flash white
+      for (let c = 0; c < COLS; c++) grid[gIdx(row, c)] = 0xFFFFFFFF;
+      // clear after brief delay handled by zeroing now + physics fills gap
+      for (let c = 0; c < COLS; c++) { grid[gIdx(row, c)] = 0; stable[gIdx(row, c)] = 0; }
+      // reset stability above
+      for (let r2 = Math.max(0, row - 8); r2 <= row; r2++)
+        for (let c = 0; c < COLS; c++) stable[gIdx(r2, c)] = 0;
+      cleared++;
+      row++; // recheck same index after shift
+    }
+  }
+  return cleared;
+}
+
+// ── Tetromino piece ────────────────────────────────────────────────────────
 class Piece {
-  constructor(key) {
-    this.key = key;
-    const s = SHAPES[key];
-    this.color = s.color;
-    // cells in block coords (each block = SAND_SIZE sand cells)
-    this.blocks = s.cells.map(([x, y]) => [x, y]);
-    // spawn at top center
-    const minX = Math.min(...this.blocks.map(b => b[0]));
-    const maxX = Math.max(...this.blocks.map(b => b[0]));
-    const w = maxX - minX + 1;
-    this.bx = Math.floor((COLS - w) / 2) - minX; // block x offset
-    this.by = 0; // block y offset
+  constructor(shape) {
+    this.shape = shape;
+    this.color = shape.color;
+    this.cells = shape.cells.map(([c,r]) => [c,r]); // [tcol, trow]
+    // spawn centered
+    const minC = Math.min(...this.cells.map(([c])=>c));
+    const maxC = Math.max(...this.cells.map(([c])=>c));
+    this.tx = Math.floor((TCOLS - (maxC - minC + 1)) / 2) - minC;
+    this.ty = 0;
+  }
+
+  // absolute tetromino coords
+  abs() { return this.cells.map(([c,r]) => [c + this.tx, r + this.ty]); }
+
+  // sand-grid coords of all 4×4 blocks
+  sandCells() {
+    const out = [];
+    for (const [tc, tr] of this.abs()) {
+      const sr = tr * BLOCK, sc = tc * BLOCK;
+      for (let dr = 0; dr < BLOCK; dr++)
+        for (let dc = 0; dc < BLOCK; dc++)
+          out.push([sr+dr, sc+dc]);
+    }
+    return out;
+  }
+
+  collides(dtx=0, dty=0, newCells=null) {
+    const cells = newCells || this.cells;
+    for (const [c,r] of cells) {
+      const ac = c + this.tx + dtx;
+      const ar = r + this.ty + dty;
+      if (ac < 0 || ac >= TCOLS) return true;
+      if (ar >= TROWS) return true;
+      // check all 4×4 sand cells
+      for (let dr = 0; dr < BLOCK; dr++) {
+        for (let dc = 0; dc < BLOCK; dc++) {
+          const sr = ar*BLOCK+dr, sc = ac*BLOCK+dc;
+          if (sr >= ROWS) return true;
+          if (grid[gIdx(sr, sc)]) return true;
+        }
+      }
+    }
+    return false;
   }
 
   rotate() {
-    // Rotate 90° clockwise around centroid
-    const cx = (Math.max(...this.blocks.map(b => b[0])) + Math.min(...this.blocks.map(b => b[0]))) / 2;
-    const cy = (Math.max(...this.blocks.map(b => b[1])) + Math.min(...this.blocks.map(b => b[1]))) / 2;
-    return this.blocks.map(([x, y]) => [
-      Math.round(cy - y + cx),
-      Math.round(x - cx + cy)
-    ]);
+    // 90° clockwise: [c,r] → [maxR-r, c]
+    const maxR = Math.max(...this.cells.map(([,r])=>r));
+    return this.cells.map(([c,r]) => [maxR - r, c]);
   }
 
-  // Sand-grid coords of all sand cells this piece occupies
-  sandCells() {
-    const result = [];
-    for (const [bx, by] of this.blocks) {
-      const sx = (this.bx + bx) * SAND_SIZE;
-      const sy = (this.by + by) * SAND_SIZE;
-      for (let dy = 0; dy < SAND_SIZE; dy++)
-        for (let dx = 0; dx < SAND_SIZE; dx++)
-          result.push([sy + dy, sx + dx]);
-    }
-    return result;
-  }
-
-  // Check collision against sand grid
-  collides(grid, dbx = 0, dby = 0, newBlocks = null) {
-    const blocks = newBlocks || this.blocks;
-    for (const [bx, by] of blocks) {
-      const sx = (this.bx + bx + dbx) * SAND_SIZE;
-      const sy = (this.by + by + dby) * SAND_SIZE;
-      for (let dy = 0; dy < SAND_SIZE; dy++) {
-        for (let dx = 0; dx < SAND_SIZE; dx++) {
-          const r = sy + dy, c = sx + dx;
-          if (r >= SAND_ROWS) return true;
-          if (c < 0 || c >= SAND_COLS) return true;
-          if (grid.get(r, c) !== null && grid.get(r, c) !== undefined && grid.get(r, c) !== true) return true;
-        }
+  lock() {
+    for (const [sr, sc] of this.sandCells()) {
+      if (sr >= 0 && sr < ROWS && sc >= 0 && sc < COLS) {
+        grid[gIdx(sr, sc)] = colorVariant(this.color);
+        stable[gIdx(sr, sc)] = 0;
       }
     }
-    return false;
+    minActiveRow = 0;
   }
 }
 
-// ─── Game ─────────────────────────────────────────────────────────────────────
-class Game {
-  constructor() {
-    this.grid = new SandGrid();
-    this.current = null;
-    this.next = null;
-    this.score = 0;
-    this.level = 1;
-    this.lines = 0;
-    this.running = false;
-    this.over = false;
-    this.dropTimer = 0;
-    this.dropInterval = 800; // ms
-    this.physicsTimer = 0;
-    this.physicsInterval = 16; // ~60fps physics
-    this.lastTime = 0;
-    this.sandFalling = false; // true while post-clear sand settles
-    this.settleFrames = 0;
-    this.pendingClear = false;
-  }
+// ── Game state ─────────────────────────────────────────────────────────────
+let current = null, next = null;
+let score = 0, level = 1, lines = 0;
+let running = false, over = false;
+let dropTimer = 0, dropInterval = 700;
+let lastTs = 0;
+let softDrop = false;
 
-  start() {
-    this.grid = new SandGrid();
-    this.score = 0; this.level = 1; this.lines = 0;
-    this.over = false; this.running = true;
-    this.dropInterval = 800;
-    this.next = new Piece(SHAPE_KEYS[Math.floor(Math.random() * SHAPE_KEYS.length)]);
-    this.spawnPiece();
-    this.updateUI();
-    hideMsgOverlay();
-    requestAnimationFrame(t => this.loop(t));
-  }
+const SCORE_TABLE = [0, 100, 300, 500, 800];
 
-  spawnPiece() {
-    this.current = this.next;
-    this.next = new Piece(SHAPE_KEYS[Math.floor(Math.random() * SHAPE_KEYS.length)]);
-    this.drawNext();
-    if (this.current.collides(this.grid)) {
-      this.gameOver();
+function spawnPiece() {
+  current = next || new Piece(randShape());
+  next    = new Piece(randShape());
+  drawNext();
+  if (current.collides()) { endGame(); }
+}
+
+function lockAndSpawn() {
+  current.lock();
+  const cleared = checkLines();
+  if (cleared > 0) {
+    score += (SCORE_TABLE[Math.min(cleared,4)] || cleared*200) * level;
+    lines += cleared;
+    level  = Math.floor(lines / 10) + 1;
+    dropInterval = Math.max(80, 700 - (level-1)*60);
+    updateUI();
+  }
+  // check overflow: sand in top 3 rows
+  for (let c = 0; c < COLS; c++) {
+    if (grid[gIdx(2, c)]) { endGame(); return; }
+  }
+  spawnPiece();
+}
+
+function endGame() {
+  running = false; over = true;
+  showOverlay('GAME OVER', `Score: ${score}  Lines: ${lines}`);
+}
+
+function startGame() {
+  grid.fill(0); stable.fill(0);
+  score=0; level=1; lines=0;
+  over=false; running=true;
+  dropTimer=0; dropInterval=700; minActiveRow=0;
+  next = new Piece(randShape());
+  spawnPiece();
+  updateUI();
+  hideOverlay();
+  lastTs = performance.now();
+  requestAnimationFrame(loop);
+}
+
+// ── Main loop ──────────────────────────────────────────────────────────────
+function loop(ts) {
+  if (!running) return;
+  const dt = Math.min(ts - lastTs, 50);
+  lastTs = ts;
+
+  // physics every frame
+  updateSand();
+
+  // piece drop
+  const interval = softDrop ? Math.max(40, dropInterval/8) : dropInterval;
+  dropTimer += dt;
+  if (dropTimer >= interval) {
+    dropTimer = 0;
+    if (current && !current.collides(0, 1)) {
+      current.ty++;
+      if (softDrop) { score++; updateUI(); }
+    } else if (current) {
+      lockAndSpawn();
     }
   }
 
-  loop(ts) {
-    if (!this.running) return;
-    const dt = Math.min(ts - this.lastTime, 50);
-    this.lastTime = ts;
+  render();
+  requestAnimationFrame(loop);
+}
 
-    // Physics step
-    this.physicsTimer += dt;
-    if (this.physicsTimer >= this.physicsInterval) {
-      this.physicsTimer = 0;
-      this.grid.step();
+// ── Render ─────────────────────────────────────────────────────────────────
+const imgBuf = new Uint8ClampedArray(COLS * ROWS * 4);
 
-      if (this.sandFalling) {
-        this.settleFrames++;
-        if (this.settleFrames > 45) {
-          this.sandFalling = false;
-          this.settleFrames = 0;
-          // Check lines again after settling
-          const cleared = this.grid.checkLines();
-          if (cleared.length > 0) this.doLineClear(cleared);
-          else this.spawnPiece();
-        }
-      }
-    }
-
-    // Piece drop
-    if (!this.sandFalling && this.current) {
-      this.dropTimer += dt;
-      if (this.dropTimer >= this.dropInterval) {
-        this.dropTimer = 0;
-        this.moveDown();
-      }
-    }
-
-    this.draw();
-    requestAnimationFrame(t => this.loop(t));
+function render() {
+  // Build pixel buffer from grid
+  imgBuf.fill(0);
+  for (let i = 0; i < COLS * ROWS; i++) {
+    const v = grid[i];
+    if (!v) continue;
+    const p = i * 4;
+    imgBuf[p]   = (v >>> 24) & 0xff;
+    imgBuf[p+1] = (v >>> 16) & 0xff;
+    imgBuf[p+2] = (v >>>  8) & 0xff;
+    imgBuf[p+3] = 0xff;
   }
 
-  moveDown() {
-    if (!this.current) return;
-    if (!this.current.collides(this.grid, 0, 1)) {
-      this.current.by++;
-    } else {
-      this.lockPiece();
+  // Background
+  for (let i = 0; i < COLS * ROWS * 4; i += 4) {
+    if (imgBuf[i+3] === 0) {
+      imgBuf[i]   = 26;
+      imgBuf[i+1] = 26;
+      imgBuf[i+2] = 46;
+      imgBuf[i+3] = 255;
     }
   }
 
-  lockPiece() {
-    // Dissolve piece into sand
-    const color = this.current.color;
-    for (const [r, c] of this.current.sandCells()) {
-      if (r >= 0 && r < SAND_ROWS && c >= 0 && c < SAND_COLS) {
-        // slight color variation per particle
-        const v = Math.floor((Math.random() - 0.5) * 20);
-        this.grid.set(r, c, [
-          Math.min(255, Math.max(0, color[0] + v)),
-          Math.min(255, Math.max(0, color[1] + v)),
-          Math.min(255, Math.max(0, color[2] + v))
-        ]);
-      }
-    }
-    this.current = null;
-
-    // Check overflow
-    if (this.grid.isOverflowed()) { this.gameOver(); return; }
-
-    // Let sand settle briefly, then check lines
-    this.sandFalling = true;
-    this.settleFrames = 0;
+  // Draw current piece into buffer
+  if (current) {
+    // Ghost
+    let ghostDy = 0;
+    while (!current.collides(0, ghostDy + 1)) ghostDy++;
+    if (ghostDy > 0) drawPieceInBuf(current, 0, ghostDy, 0.22);
+    drawPieceInBuf(current, 0, 0, 1.0);
   }
 
-  doLineClear(cleared) {
-    const n = cleared.length;
-    // Score: 1=100, 2=300, 3=500, 4=800 × level
-    const pts = [0, 100, 300, 500, 800];
-    this.score += (pts[Math.min(n, 4)] || n * 200) * this.level;
-    this.lines += n;
-    this.level = Math.floor(this.lines / 10) + 1;
-    this.dropInterval = Math.max(100, 800 - (this.level - 1) * 70);
-    this.grid.clearRows(cleared);
-    this.updateUI();
-    // After clearing, let sand settle again
-    this.sandFalling = true;
-    this.settleFrames = 0;
+  const imgData = new ImageData(imgBuf, COLS, ROWS);
+  ctx.putImageData(imgData, 0, 0);
+
+  // Subtle grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 0.5;
+  for (let c = 0; c <= COLS; c += BLOCK) {
+    ctx.beginPath(); ctx.moveTo(c, 0); ctx.lineTo(c, ROWS); ctx.stroke();
   }
-
-  hardDrop() {
-    if (!this.current || this.sandFalling) return;
-    while (!this.current.collides(this.grid, 0, 1)) {
-      this.current.by++;
-      this.score += 2;
-    }
-    this.lockPiece();
-    this.updateUI();
-  }
-
-  moveLeft()  { if (this.current && !this.sandFalling && !this.current.collides(this.grid, -1, 0)) { this.current.bx--; } }
-  moveRight() { if (this.current && !this.sandFalling && !this.current.collides(this.grid,  1, 0)) { this.current.bx++; } }
-
-  tryRotate() {
-    if (!this.current || this.sandFalling) return;
-    const rotated = this.current.rotate();
-    // Wall kick: try 0, -1, +1, -2, +2
-    for (const kick of [0, -1, 1, -2, 2]) {
-      if (!this.current.collides(this.grid, kick, 0, rotated)) {
-        this.current.blocks = rotated;
-        this.current.bx += kick;
-        return;
-      }
-    }
-  }
-
-  gameOver() {
-    this.running = false;
-    this.over = true;
-    showMsgOverlay('GAME OVER', `Score: ${this.score} | Lines: ${this.lines}`);
-  }
-
-  // ─── Drawing ───────────────────────────────────────────────────────────────
-  draw() {
-    const sandPx = canvas._sandPx || 2;
-    ctx.fillStyle = '#0d0804';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Draw sand grid
-    const imgData = ctx.createImageData(canvas.width, canvas.height);
-    const data = imgData.data;
-    for (let r = 0; r < SAND_ROWS; r++) {
-      for (let c = 0; c < SAND_COLS; c++) {
-        const color = this.grid.cells[r][c];
-        if (!color) continue;
-        for (let py = 0; py < sandPx; py++) {
-          for (let px = 0; px < sandPx; px++) {
-            const idx = ((r * sandPx + py) * canvas.width + (c * sandPx + px)) * 4;
-            data[idx]   = color[0];
-            data[idx+1] = color[1];
-            data[idx+2] = color[2];
-            data[idx+3] = 255;
-          }
-        }
-      }
-    }
-    ctx.putImageData(imgData, 0, 0);
-
-    // Draw current piece (ghost + solid)
-    if (this.current) {
-      // Ghost piece
-      let ghostBy = this.current.by;
-      while (!this.current.collides(this.grid, 0, ghostBy - this.current.by + 1)) ghostBy++;
-      if (ghostBy !== this.current.by) {
-        ctx.globalAlpha = 0.2;
-        this.drawPieceAt(this.current, this.current.bx, ghostBy, sandPx);
-        ctx.globalAlpha = 1;
-      }
-      // Solid piece
-      this.drawPieceAt(this.current, this.current.bx, this.current.by, sandPx);
-    }
-
-    // Grid lines (subtle)
-    ctx.strokeStyle = 'rgba(80,50,20,0.15)';
-    ctx.lineWidth = 0.5;
-    for (let c = 0; c <= SAND_COLS; c += SAND_SIZE) {
-      ctx.beginPath();
-      ctx.moveTo(c * sandPx, 0);
-      ctx.lineTo(c * sandPx, canvas.height);
-      ctx.stroke();
-    }
-  }
-
-  drawPieceAt(piece, bx, by, sandPx) {
-    const [r, g, b] = piece.color;
-    ctx.fillStyle = `rgb(${r},${g},${b})`;
-    for (const [dx, dy] of piece.blocks) {
-      const px = (bx + dx) * SAND_SIZE * sandPx;
-      const py = (by + dy) * SAND_SIZE * sandPx;
-      ctx.fillRect(px, py, SAND_SIZE * sandPx, SAND_SIZE * sandPx);
-      // inner highlight
-      ctx.fillStyle = `rgba(255,255,255,0.15)`;
-      ctx.fillRect(px + 1, py + 1, SAND_SIZE * sandPx - 2, SAND_SIZE * sandPx - 2);
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
-    }
-  }
-
-  drawNext() {
-    nextCtx.fillStyle = '#1a0e04';
-    nextCtx.fillRect(0, 0, 80, 80);
-    if (!this.next) return;
-    const [r, g, b] = this.next.color;
-    nextCtx.fillStyle = `rgb(${r},${g},${b})`;
-    const bs = 14; // block size in next preview
-    const minX = Math.min(...this.next.blocks.map(b => b[0]));
-    const minY = Math.min(...this.next.blocks.map(b => b[1]));
-    const maxX = Math.max(...this.next.blocks.map(b => b[0]));
-    const maxY = Math.max(...this.next.blocks.map(b => b[1]));
-    const offX = Math.floor((80 - (maxX - minX + 1) * bs) / 2);
-    const offY = Math.floor((80 - (maxY - minY + 1) * bs) / 2);
-    for (const [dx, dy] of this.next.blocks) {
-      nextCtx.fillRect(offX + (dx - minX) * bs, offY + (dy - minY) * bs, bs - 1, bs - 1);
-    }
-  }
-
-  updateUI() {
-    document.getElementById('score-val').textContent = this.score;
-    document.getElementById('level-val').textContent = this.level;
-    document.getElementById('lines-val').textContent = this.lines;
+  for (let r = 0; r <= ROWS; r += BLOCK) {
+    ctx.beginPath(); ctx.moveTo(0, r); ctx.lineTo(COLS, r); ctx.stroke();
   }
 }
 
-// ─── UI helpers ───────────────────────────────────────────────────────────────
-const overlay = document.getElementById('msg-overlay');
-function showMsgOverlay(title, sub) {
-  overlay.innerHTML = `<h2>${title}</h2><p>${sub}</p>`;
+function drawPieceInBuf(piece, dtx, dty, alpha) {
+  const r = (piece.color >>> 24) & 0xff;
+  const g = (piece.color >>> 16) & 0xff;
+  const b = (piece.color >>>  8) & 0xff;
+  for (const [tc, tr] of piece.cells) {
+    const ac = tc + piece.tx + dtx;
+    const ar = tr + piece.ty + dty;
+    for (let dr = 0; dr < BLOCK; dr++) {
+      for (let dc = 0; dc < BLOCK; dc++) {
+        const sr = ar*BLOCK+dr, sc = ac*BLOCK+dc;
+        if (sr < 0 || sr >= ROWS || sc < 0 || sc >= COLS) continue;
+        const p = (sr*COLS+sc)*4;
+        if (alpha < 1) {
+          imgBuf[p]   = Math.round(imgBuf[p]   * (1-alpha) + r * alpha);
+          imgBuf[p+1] = Math.round(imgBuf[p+1] * (1-alpha) + g * alpha);
+          imgBuf[p+2] = Math.round(imgBuf[p+2] * (1-alpha) + b * alpha);
+        } else {
+          // solid with inner highlight
+          const edge = dr===0||dr===BLOCK-1||dc===0||dc===BLOCK-1;
+          imgBuf[p]   = edge ? Math.min(255,r+40) : r;
+          imgBuf[p+1] = edge ? Math.min(255,g+40) : g;
+          imgBuf[p+2] = edge ? Math.min(255,b+40) : b;
+        }
+        imgBuf[p+3] = 255;
+      }
+    }
+  }
+}
+
+function drawNext() {
+  nctx.fillStyle = '#0d0d1a';
+  nctx.fillRect(0, 0, 88, 88);
+  if (!next) return;
+  const r = (next.color>>>24)&0xff, g=(next.color>>>16)&0xff, b=(next.color>>>8)&0xff;
+  nctx.fillStyle = `rgb(${r},${g},${b})`;
+  const bs = 16;
+  const minC = Math.min(...next.cells.map(([c])=>c));
+  const minR = Math.min(...next.cells.map(([,r])=>r));
+  const maxC = Math.max(...next.cells.map(([c])=>c));
+  const maxR = Math.max(...next.cells.map(([,r])=>r));
+  const ox = Math.floor((88-(maxC-minC+1)*bs)/2);
+  const oy = Math.floor((88-(maxR-minR+1)*bs)/2);
+  for (const [tc,tr] of next.cells) {
+    nctx.fillRect(ox+(tc-minC)*bs, oy+(tr-minR)*bs, bs-1, bs-1);
+    nctx.fillStyle = `rgba(255,255,255,0.15)`;
+    nctx.fillRect(ox+(tc-minC)*bs+1, oy+(tr-minR)*bs+1, bs-3, bs-3);
+    nctx.fillStyle = `rgb(${r},${g},${b})`;
+  }
+}
+
+function updateUI() {
+  document.getElementById('v-score').textContent = score;
+  document.getElementById('v-level').textContent = level;
+  document.getElementById('v-lines').textContent = lines;
+}
+
+// ── Overlay ────────────────────────────────────────────────────────────────
+const overlay = document.getElementById('overlay');
+function showOverlay(t, s) {
+  overlay.innerHTML = `<h2>${t}</h2><p>${s}</p>`;
   overlay.style.display = 'block';
 }
-function hideMsgOverlay() { overlay.style.display = 'none'; }
+function hideOverlay() { overlay.style.display = 'none'; }
 
-// ─── Input ────────────────────────────────────────────────────────────────────
-let game = null;
-
-document.getElementById('btn-start').addEventListener('click', () => {
-  game = new Game();
-  game.start();
-});
+// ── Input ──────────────────────────────────────────────────────────────────
+document.getElementById('btn-start').addEventListener('click', startGame);
 
 document.addEventListener('keydown', e => {
-  if (!game) return;
-  if (!game.running && !game.over) return;
-  if (game.over && e.code === 'Space') { game = new Game(); game.start(); return; }
-  if (!game.running) return;
-  switch (e.code) {
-    case 'ArrowLeft':  e.preventDefault(); game.moveLeft();  break;
-    case 'ArrowRight': e.preventDefault(); game.moveRight(); break;
-    case 'ArrowDown':  e.preventDefault(); game.moveDown();  break;
-    case 'ArrowUp':    e.preventDefault(); game.tryRotate(); break;
-    case 'Space':      e.preventDefault(); game.hardDrop();  break;
-    case 'KeyZ':       game.tryRotate(); break;
+  if (over && e.code === 'Space') { startGame(); return; }
+  if (!running || !current) return;
+  switch(e.code) {
+    case 'ArrowLeft':  e.preventDefault(); if (!current.collides(-1,0)) current.tx--; break;
+    case 'ArrowRight': e.preventDefault(); if (!current.collides( 1,0)) current.tx++; break;
+    case 'ArrowDown':  e.preventDefault(); softDrop = true; break;
+    case 'ArrowUp':    e.preventDefault(); tryRotate(); break;
+    case 'KeyZ':       tryRotate(); break;
+    case 'Space':      e.preventDefault(); hardDrop(); break;
   }
 });
+document.addEventListener('keyup', e => {
+  if (e.code === 'ArrowDown') softDrop = false;
+});
+
+function tryRotate() {
+  if (!current) return;
+  const rot = current.rotate();
+  for (const kick of [0,-1,1,-2,2]) {
+    if (!current.collides(kick, 0, rot)) {
+      current.cells = rot;
+      current.tx += kick;
+      return;
+    }
+  }
+}
+
+function hardDrop() {
+  if (!current) return;
+  while (!current.collides(0,1)) { current.ty++; score += 2; }
+  lockAndSpawn();
+  updateUI();
+}
 
 // Mobile buttons
-document.getElementById('btn-left').addEventListener('click',   () => game && game.moveLeft());
-document.getElementById('btn-right').addEventListener('click',  () => game && game.moveRight());
-document.getElementById('btn-rotate').addEventListener('click', () => game && game.tryRotate());
-document.getElementById('btn-down').addEventListener('click',   () => game && game.hardDrop());
+document.getElementById('mb-left').addEventListener('click',  () => { if(running&&current&&!current.collides(-1,0)) current.tx--; });
+document.getElementById('mb-right').addEventListener('click', () => { if(running&&current&&!current.collides( 1,0)) current.tx++; });
+document.getElementById('mb-rot').addEventListener('click',   () => { if(running) tryRotate(); });
+document.getElementById('mb-drop').addEventListener('click',  () => { if(running) hardDrop(); });
 
-// Touch swipe on canvas
-let touchStartX = 0, touchStartY = 0;
+// Touch swipe
+let tx0=0, ty0=0;
 canvas.addEventListener('touchstart', e => {
-  touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
+  tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY;
   e.preventDefault();
-}, { passive: false });
-
+}, {passive:false});
 canvas.addEventListener('touchend', e => {
-  if (!game || !game.running) return;
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  const dy = e.changedTouches[0].clientY - touchStartY;
-  const absDx = Math.abs(dx), absDy = Math.abs(dy);
-  if (absDx < 10 && absDy < 10) { game.tryRotate(); return; }
-  if (absDx > absDy) {
-    if (dx < 0) game.moveLeft(); else game.moveRight();
+  if (!running || !current) return;
+  const dx = e.changedTouches[0].clientX - tx0;
+  const dy = e.changedTouches[0].clientY - ty0;
+  const ax = Math.abs(dx), ay = Math.abs(dy);
+  if (ax < 8 && ay < 8) { tryRotate(); return; }
+  if (ax > ay) {
+    if (dx < 0) { if (!current.collides(-1,0)) current.tx--; }
+    else         { if (!current.collides( 1,0)) current.tx++; }
   } else {
-    if (dy > 0) game.hardDrop(); else game.tryRotate();
+    if (dy > 0) hardDrop();
+    else        tryRotate();
   }
   e.preventDefault();
-}, { passive: false });
+}, {passive:false});
 
-// Initial draw placeholder
-canvas._sandPx = canvas._sandPx || 2;
-ctx.fillStyle = '#0d0804';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+// Double-tap = hard drop
+let lastTap = 0;
+canvas.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTap < 300) hardDrop();
+  lastTap = now;
+});
+
+// Initial blank render
+ctx.fillStyle = '#1a1a2e';
+ctx.fillRect(0, 0, COLS, ROWS);
 </script>
 </body>
 </html>

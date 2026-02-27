@@ -481,9 +481,9 @@ export const games: Game[] = [
     color: "#c07830",
     emoji: "⏳",
     keywords: ["sand tetris", "physics tetris", "sand game online", "tetris with sand", "play sand tetris free"],
-    longDescription: "Sand Tetris reimagines the classic Tetris formula with a stunning physics twist: when a piece lands, it doesn't lock in place — it dissolves into hundreds of individual sand particles that tumble, slide, and pile up according to real gravity rules. Each particle seeks the lowest available position, creating organic, ever-shifting sand dunes instead of rigid blocks. Lines clear when a row reaches 90% density, and the sand above cascades down to fill the gaps. It's hypnotic, unpredictable, and endlessly satisfying.",
+    longDescription: "Sand Tetris reimagines the classic Tetris formula with a stunning physics twist: when a piece lands, it doesn't lock in place — it dissolves into hundreds of individual sand particles that tumble, slide, and pile up according to real gravity rules. Each particle seeks the lowest available position, creating organic, ever-shifting sand dunes instead of rigid blocks. Lines clear when a row reaches 85% density, and the sand above cascades down to fill the gaps. It's hypnotic, unpredictable, and endlessly satisfying.",
     howToPlay: {
-      desktop: "Use Left/Right arrow keys to move the falling piece, Up arrow or Z to rotate, Down arrow to soft drop, and Space to hard drop instantly. The piece will dissolve into sand particles on landing. Clear rows by filling them to 90% density — sand doesn't pack perfectly, so gaps are normal. Plan ahead as sand piles can shift unexpectedly.",
+      desktop: "Use Left/Right arrow keys to move the falling piece, Up arrow or Z to rotate, Down arrow to soft drop, and Space to hard drop instantly. The piece will dissolve into sand particles on landing. Clear rows by filling them to 85% density — sand doesn't pack perfectly, so gaps are normal. Plan ahead as sand piles can shift unexpectedly.",
       mobile: "Swipe left/right to move the piece, swipe up to rotate, swipe down to hard drop, or tap the piece to rotate. Use the on-screen buttons below the game for precise control. The touch controls are optimized for one-handed play."
     },
     features: [
