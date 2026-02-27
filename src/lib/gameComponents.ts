@@ -17,6 +17,7 @@ const gameComponents: Record<string, ReturnType<typeof dynamic>> = {
   "solitaire": dynamic(() => import("@/components/games/GameSolitaire"), { ssr: false }),
   "checkers": dynamic(() => import("@/components/games/GameCheckers"), { ssr: false }),
   "magic-tower": dynamic(() => import("@/components/games/GameMagicTower"), { ssr: false }),
+  "sand-tetris": dynamic(() => import("@/components/games/GameSandTetris"), { ssr: false }),
 };
 
 export function getGameComponent(slug: string) {
