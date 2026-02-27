@@ -1,6 +1,10 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    { "source": "/games/sand-tetris", "destination": "/games/sand-tetris/index.html" },
+    { "source": "/games/magic-tower", "destination": "/games/magic-tower/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
