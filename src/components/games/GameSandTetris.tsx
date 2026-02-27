@@ -19,7 +19,7 @@ export default function GameSandTetris() {
   return (
     <iframe
       ref={iframeRef}
-      src="/games/sand-tetris"
+      src="/games/sand-tetris/"
       style={{
         width: "100%",
         height: "600px",
