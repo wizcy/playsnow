@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Sand Tetris - Play Free Online | PlayNow</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0d0d1a;
+  color: #ccc;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: 8px 4px;
+  overflow-x: hidden;
+}
+h1 {
+  font-size: 1.2rem;
+  color: #e8c060;
+  margin-bottom: 8px;
+  letter-spacing: 3px;
+  text-shadow: 0 0 12px rgba(232,192,96,0.4);
+}
+#wrap { display: flex; gap: 10px; align-items: flex-start; }
+#canvas-wrap { position: relative; }
+#game-canvas {
+  display: block;
+  border: 1px solid #444;
+  box-shadow: 0 0 24px rgba(100,80,40,0.4);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+#overlay {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(5,5,15,0.93);
+  border: 1px solid #b06020;
+  border-radius: 10px;
+  padding: 20px 28px;
+  text-align: center;
+  z-index: 10;
+  min-width: 160px;
+}
+#overlay h2 { color: #e8c060; font-size: 1.2rem; margin-bottom: 8px; }
+#overlay p  { color: #a08040; font-size: 0.8rem; line-height: 1.6; }
+#panel {
+  width: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.box {
+  background: #12122a;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  padding: 6px 8px;
+  text-align: center;
+}
+.box h3 { font-size: 0.58rem; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+.box .val { font-size: 1.1rem; font-weight: bold; color: #e8c060; }
+#next-canvas { display: block; margin: 4px auto 0; image-rendering: pixelated; }
+#btn-start {
+  width: 100%;
+  padding: 8px 0;
+  background: #7a3a10;
+  color: #f0c060;
+  border: 1px solid #b06020;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: bold;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+#btn-start:hover { background: #9a4a18; }
+#mobile-btns {
+  display: none;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.mbtn {
+  width: 60px; height: 60px;
+  background: #12122a;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+  color: #e8c060;
+  font-size: 1.4rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.mbtn:active { background: #2a2a5a; }
+@media (max-width: 520px) {
+  #mobile-btns { display: flex; }
+  #panel { width: 80px; }
+  .box .val { font-size: 0.95rem; }
+}
+</style>
+</head>
+<body>
+<h1>⏳ SAND TETRIS</h1>
+<div id="wrap">
+  <div id="canvas-wrap">
+    <canvas id="game-canvas"></canvas>
+    <div id="overlay">
+      <h2>SAND TETRIS</h2>
+      <p>Blocks dissolve into sand<br>particles when they land!<br><br>Press <b>Start</b> or <b>Space</b></p>
+    </div>
+  </div>
+  <div id="panel">
+    <div class="box">
+      <h3>Next</h3>
+      <canvas id="next-canvas" width="80" height="80"></canvas>
+    </div>
+    <div class="box"><h3>Score</h3><div class="val" id="v-score">0</div></div>
+    <div class="box"><h3>Level</h3><div class="val" id="v-level">1</div></div>
+    <div class="box"><h3>Lines</h3><div class="val" id="v-lines">0</div></div>
+    <button id="btn-start">START</button>
+  </div>
+</div>
+<div id="mobile-btns">
+  <div class="mbtn" id="mb-left">◀</div>
+  <div class="mbtn" id="mb-rot">↻</div>
+  <div class="mbtn" id="mb-right">▶</div>
+  <div class="mbtn" id="mb-drop">▼▼</div>
+</div>
+
+<script>
+// ── 常量：方块网格 10×20，每格 = 4×4 沙粒 ──────────────────────────────
+const TCOLS = 10, TROWS = 20;   // 俄罗斯方块逻辑格子
+const PX    = 4;                 // 每格 = PX×PX 沙粒像素
+const COLS  = TCOLS * PX;       // 沙粒网格宽 = 40
+const ROWS  = TROWS * PX;       // 沙粒网格高 = 80
+const DENSITY = 0.85;
+
+// ── Canvas 自适应尺寸 ────────────────────────────────────────────────────
+const canvas  = document.getElementById('game-canvas');
+const ctx     = canvas.getContext('2d');
+const ncanvas = document.getElementById('next-canvas');
+const nctx    = ncanvas.getContext('2d');
+
+function setCanvasSize() {
+  const maxH = window.innerHeight - 120;
+  const maxW = window.innerWidth  - 130;
+  // scale 让游戏区域尽量大，但保持整数倍（清晰）
+  const scale = Math.max(2, Math.min(
+    Math.floor(maxH / ROWS),
+    Math.floor(maxW / COLS)
+  ));
+  canvas.width  = COLS;
+  canvas.height = ROWS;
+  canvas.style.width  = (COLS  * scale) + 'px';
+  canvas.style.height = (ROWS  * scale) + 'px';
+}
+setCanvasSize();
+window.addEventListener('resize', setCanvasSize);
+
+// ── 沙粒网格（Uint32Array，每格存 RGBA 颜色，0=空）────────────────────
+let grid   = new Uint32Array(COLS * ROWS);
+let stable = new Uint8Array(COLS * ROWS);   // 稳定计数，减少无效计算
+const imgBuf = new Uint8ClampedArray(COLS * ROWS * 4);
+
+function gIdx(r, c) { return r * COLS + c; }
+
+// ── 颜色工具 ─────────────────────────────────────────────────────────────
+function colorVariant(rgba) {
+  // 亮度随机偏差 ±12%，让沙粒有颗粒感
+  const d = (Math.random() - 0.5) * 0.24;
+  const r = Math.min(255, Math.max(0, ((rgba >>> 24) & 0xff) * (1 + d))) | 0;
+  const g = Math.min(255, Math.max(0, ((rgba >>> 16) & 0xff) * (1 + d))) | 0;
+  const b = Math.min(255, Math.max(0, ((rgba >>>  8) & 0xff) * (1 + d))) | 0;
+  return (r << 24) | (g << 16) | (b << 8) | 0xff;
+}
+
+// ── 方块定义 ─────────────────────────────────────────────────────────────
+// cells: [col, row] 相对坐标
+const SHAPES = [
+  { name:'I', color:0x00EEEEFF, cells:[[0,1],[1,1],[2,1],[3,1]] },
+  { name:'O', color:0xFFD700FF, cells:[[0,0],[1,0],[0,1],[1,1]] },
+  { name:'T', color:0xAA44CCFF, cells:[[1,0],[0,1],[1,1],[2,1]] },
+  { name:'S', color:0x22CC66FF, cells:[[1,0],[2,0],[0,1],[1,1]] },
+  { name:'Z', color:0xEE3333FF, cells:[[0,0],[1,0],[1,1],[2,1]] },
+  { name:'J', color:0x2266EEFF, cells:[[0,0],[0,1],[1,1],[2,1]] },
+  { name:'L', color:0xFF8822FF, cells:[[2,0],[0,1],[1,1],[2,1]] },
+];
+
+function randShape() { return SHAPES[Math.floor(Math.random() * SHAPES.length)]; }
+
+// ── Piece 类 ─────────────────────────────────────────────────────────────
+class Piece {
+  constructor(shape) {
+    this.shape = shape;
+    this.color = shape.color;
+    this.cells = shape.cells.map(c => [...c]);
+    this.tx = Math.floor((TCOLS - 4) / 2);  // 水平居中
+    this.ty = -2;
+  }
+
+  abs() {
+    return this.cells.map(([c, r]) => [c + this.tx, r + this.ty]);
+  }
+
+  collides(dtx = 0, dty = 0, cells = null) {
+    for (const [c, r] of (cells || this.cells)) {
+      const ac = c + this.tx + dtx;
+      const ar = r + this.ty + dty;
+      if (ac < 0 || ac >= TCOLS) return true;
+      if (ar >= TROWS) return true;
+      if (ar < 0) continue;
+      // 检查对应的 PX×PX 沙粒区域
+      for (let dr = 0; dr < PX; dr++) {
+        for (let dc = 0; dc < PX; dc++) {
+          const sr = ar * PX + dr;
+          const sc = ac * PX + dc;
+          if (sr >= ROWS) return true;
+          if (sc >= 0 && sc < COLS && grid[gIdx(sr, sc)]) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  rotate() {
+    const maxR = Math.max(...this.cells.map(([, r]) => r));
+    const rotated = this.cells.map(([c, r]) => [maxR - r, c]);
+    if (!this.collides(0, 0, rotated)) {
+      this.cells = rotated;
+    } else if (!this.collides(1, 0, rotated)) {
+      this.cells = rotated; this.tx += 1;
+    } else if (!this.collides(-1, 0, rotated)) {
+      this.cells = rotated; this.tx -= 1;
+    }
+  }
+
+  lock() {
+    for (const [tc, tr] of this.abs()) {
+      for (let dr = 0; dr < PX; dr++) {
+        for (let dc = 0; dc < PX; dc++) {
+          const sr = tr * PX + dr;
+          const sc = tc * PX + dc;
+          if (sr >= 0 && sr < ROWS && sc >= 0 && sc < COLS) {
+            grid[gIdx(sr, sc)] = colorVariant(this.color);
+            stable[gIdx(sr, sc)] = 0;
+          }
+        }
+      }
+    }
+  }
+}
+
+// ── 游戏状态 ─────────────────────────────────────────────────────────────
+let current = null, next = null;
+let score = 0, level = 1, lines = 0;
+let running = false, over = false;
+let dropTimer = 0, dropInterval = 600;
+let lastTs = 0, softDrop = false;
+
+const SCORE_TABLE = [0, 100, 300, 500, 800];
+
+// ── 沙粒物理 ─────────────────────────────────────────────────────────────
+function updateSand() {
+  // 从底部往上扫，随机左右方向避免偏差
+  for (let row = ROWS - 2; row >= 0; row--) {
+    const ltr = Math.random() > 0.5;
+    for (let i = 0; i < COLS; i++) {
+      const col = ltr ? i : COLS - 1 - i;
+      const idx = gIdx(row, col);
+      if (!grid[idx]) continue;
+
+      // 稳定沙粒跳过（连续5帧未动）
+      if (stable[idx] >= 5) continue;
+
+      const color = grid[idx];
+      const below = gIdx(row + 1, col);
+
+      if (!grid[below]) {
+        // 正下方空 → 下落
+        grid[below] = color;
+        stable[below] = 0;
+        grid[idx] = 0;
+        stable[idx] = 0;
+      } else {
+        // 尝试左下或右下
+        const goLeft = Math.random() > 0.5;
+        const c1 = goLeft ? col - 1 : col + 1;
+        const c2 = goLeft ? col + 1 : col - 1;
+        let moved = false;
+        for (const nc of [c1, c2]) {
+          if (nc >= 0 && nc < COLS && !grid[gIdx(row + 1, nc)]) {
+            grid[gIdx(row + 1, nc)] = color;
+            stable[gIdx(row + 1, nc)] = 0;
+            grid[idx] = 0;
+            stable[idx] = 0;
+            moved = true;
+            break;
+          }
+        }
+        if (!moved) {
+          stable[idx] = Math.min(255, stable[idx] + 1);
+        }
+      }
+    }
+  }
+}
+
+// ── 消行 ─────────────────────────────────────────────────────────────────
+function checkLines() {
+  let cleared = 0;
+  for (let row = ROWS - 1; row >= 0; row--) {
+    let count = 0;
+    for (let col = 0; col < COLS; col++) {
+      if (grid[gIdx(row, col)]) count++;
+    }
+    if (count / COLS >= DENSITY) {
+      // 消行：清空 + 闪白特效
+      for (let col = 0; col < COLS; col++) {
+        grid[gIdx(row, col)] = 0;
+        stable[gIdx(row, col)] = 0;
+      }
+      // 重置上方沙粒稳定状态，让它们重新受重力
+      for (let r = 0; r < row; r++) {
+        for (let col = 0; col < COLS; col++) {
+          if (grid[gIdx(r, col)]) stable[gIdx(r, col)] = 0;
+        }
+      }
+      cleared++;
+      row++; // 重新检查当前行
+    }
+  }
+  return cleared;
+}
+
+// ── 生成方块 ─────────────────────────────────────────────────────────────
+function spawnPiece() {
+  current = next || new Piece(randShape());
+  next = new Piece(randShape());
+  drawNext();
+  if (current.collides()) endGame();
+}
+
+function lockAndSpawn() {
+  current.lock();
+  const cleared = checkLines();
+  if (cleared > 0) {
+    score += (SCORE_TABLE[Math.min(cleared, 4)] || cleared * 200) * level;
+    lines += cleared;
+    level = Math.floor(lines / 10) + 1;
+    dropInterval = Math.max(80, 600 - (level - 1) * 55);
+    updateUI();
+  }
+  // 溢出检测：顶部3行有沙粒
+  for (let c = 0; c < COLS; c++) {
+    if (grid[gIdx(2, c)]) { endGame(); return; }
+  }
+  spawnPiece();
+}
+
+function endGame() {
+  running = false; over = true;
+  showOverlay('GAME OVER', `Score: ${score}  Lines: ${lines}\nPress Start to retry`);
+}
+
+function startGame() {
+  grid.fill(0); stable.fill(0);
+  score = 0; level = 1; lines = 0;
+  over = false; running = true;
+  dropTimer = 0; dropInterval = 600; softDrop = false;
+  next = new Piece(randShape());
+  spawnPiece();
+  updateUI();
+  hideOverlay();
+  lastTs = performance.now();
+  requestAnimationFrame(loop);
+}
+
+// ── 主循环 ───────────────────────────────────────────────────────────────
+function loop(ts) {
+  if (!running) return;
+  const dt = Math.min(ts - lastTs, 50);
+  lastTs = ts;
+
+  updateSand();
+
+  const interval = softDrop ? Math.max(40, dropInterval / 8) : dropInterval;
+  dropTimer += dt;
+  if (dropTimer >= interval) {
+    dropTimer = 0;
+    if (current && !current.collides(0, 1)) {
+      current.ty++;
+      if (softDrop) { score++; updateUI(); }
+    } else if (current) {
+      lockAndSpawn();
+    }
+  }
+
+  render();
+  requestAnimationFrame(loop);
+}
+
+// ── 渲染 ─────────────────────────────────────────────────────────────────
+function render() {
+  // 填充背景色
+  imgBuf.fill(0);
+  for (let i = 0; i < COLS * ROWS; i++) {
+    const p = i * 4;
+    const v = grid[i];
+    if (v) {
+      imgBuf[p]   = (v >>> 24) & 0xff;
+      imgBuf[p+1] = (v >>> 16) & 0xff;
+      imgBuf[p+2] = (v >>>  8) & 0xff;
+      imgBuf[p+3] = 0xff;
+    } else {
+      imgBuf[p]   = 18;
+      imgBuf[p+1] = 18;
+      imgBuf[p+2] = 38;
+      imgBuf[p+3] = 255;
+    }
+  }
+
+  // 绘制当前方块（ghost + 实体）
+  if (current) {
+    let ghostDy = 0;
+    while (!current.collides(0, ghostDy + 1)) ghostDy++;
+    drawPieceToBuffer(current, 0, ghostDy, 0.2);
+    drawPieceToBuffer(current, 0, 0, 1.0);
+  }
+
+  ctx.putImageData(new ImageData(imgBuf, COLS, ROWS), 0, 0);
+}
+
+function drawPieceToBuffer(piece, dtx, dty, alpha) {
+  const r0 = (piece.color >>> 24) & 0xff;
+  const g0 = (piece.color >>> 16) & 0xff;
+  const b0 = (piece.color >>>  8) & 0xff;
+  for (const [tc, tr] of piece.cells) {
+    const ac = tc + piece.tx + dtx;
+    const ar = tr + piece.ty + dty;
+    for (let dr = 0; dr < PX; dr++) {
+      for (let dc = 0; dc < PX; dc++) {
+        const sr = ar * PX + dr;
+        const sc = ac * PX + dc;
+        if (sr < 0 || sr >= ROWS || sc < 0 || sc >= COLS) continue;
+        const p = gIdx(sr, sc) * 4;
+        const edge = dr === 0 || dr === PX-1 || dc === 0 || dc === PX-1;
+        const r = edge ? Math.min(255, r0 + 40) : r0;
+        const g = edge ? Math.min(255, g0 + 40) : g0;
+        const b = edge ? Math.min(255, b0 + 40) : b0;
+        if (alpha < 1) {
+          imgBuf[p]   = (imgBuf[p]   * (1-alpha) + r * alpha) | 0;
+          imgBuf[p+1] = (imgBuf[p+1] * (1-alpha) + g * alpha) | 0;
+          imgBuf[p+2] = (imgBuf[p+2] * (1-alpha) + b * alpha) | 0;
+          imgBuf[p+3] = 255;
+        } else {
+          imgBuf[p] = r; imgBuf[p+1] = g; imgBuf[p+2] = b; imgBuf[p+3] = 255;
+        }
+      }
+    }
+  }
+}
+
+function drawNext() {
+  nctx.fillStyle = '#0d0d1a';
+  nctx.fillRect(0, 0, 80, 80);
+  if (!next) return;
+  const r0 = (next.color >>> 24) & 0xff;
+  const g0 = (next.color >>> 16) & 0xff;
+  const b0 = (next.color >>>  8) & 0xff;
+  nctx.fillStyle = `rgb(${r0},${g0},${b0})`;
+  const offX = (4 - Math.max(...next.cells.map(([c])=>c)) - 1) * 9 + 4;
+  const offY = (2 - Math.max(...next.cells.map(([,r])=>r))) * 9 + 10;
+  for (const [c, r] of next.cells) {
+    nctx.fillRect(offX + c * 18, offY + r * 18, 16, 16);
+  }
+}
+
+function updateUI() {
+  document.getElementById('v-score').textContent = score;
+  document.getElementById('v-level').textContent = level;
+  document.getElementById('v-lines').textContent = lines;
+}
+
+function showOverlay(title, msg) {
+  const el = document.getElementById('overlay');
+  el.querySelector('h2').textContent = title;
+  el.querySelector('p').innerHTML = msg.replace(/\n/g, '<br>');
+  el.style.display = 'block';
+}
+function hideOverlay() {
+  document.getElementById('overlay').style.display = 'none';
+}
+
+// ── 键盘输入 ─────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (!running) {
+    if (e.code === 'Space') { e.preventDefault(); startGame(); }
+    return;
+  }
+  if (!current) return;
+  switch (e.code) {
+    case 'ArrowLeft':  e.preventDefault(); if (!current.collides(-1,0)) current.tx--; break;
+    case 'ArrowRight': e.preventDefault(); if (!current.collides(1,0))  current.tx++; break;
+    case 'ArrowUp': case 'KeyZ': e.preventDefault(); current.rotate(); break;
+    case 'ArrowDown':  e.preventDefault(); softDrop = true; break;
+    case 'Space':      e.preventDefault(); hardDrop(); break;
+  }
+});
+document.addEventListener('keyup', e => {
+  if (e.code === 'ArrowDown') softDrop = false;
+});
+
+function hardDrop() {
+  if (!current) return;
+  while (!current.collides(0, 1)) { current.ty++; score++; }
+  updateUI();
+  lockAndSpawn();
+}
+
+// ── 触摸输入 ─────────────────────────────────────────────────────────────
+let touchX = 0, touchY = 0;
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  touchX = e.touches[0].clientX;
+  touchY = e.touches[0].clientY;
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (!running) { startGame(); return; }
+  if (!current) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  const dy = e.changedTouches[0].clientY - touchY;
+  if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+    current.rotate();
+  } else if (Math.abs(dx) > Math.abs(dy)) {
+    if (dx < -20 && !current.collides(-1,0)) current.tx--;
+    else if (dx > 20 && !current.collides(1,0)) current.tx++;
+  } else {
+    if (dy > 20) hardDrop();
+  }
+}, { passive: false });
+
+// ── 移动端按钮 ───────────────────────────────────────────────────────────
+document.getElementById('mb-left').addEventListener('click', () => {
+  if (current && !current.collides(-1,0)) current.tx--;
+});
+document.getElementById('mb-right').addEventListener('click', () => {
+  if (current && !current.collides(1,0)) current.tx++;
+});
+document.getElementById('mb-rot').addEventListener('click', () => {
+  if (current) current.rotate();
+});
+document.getElementById('mb-drop').addEventListener('click', () => {
+  if (running) hardDrop();
+});
+document.getElementById('btn-start').addEventListener('click', startGame);
+
+// ── 初始化 ───────────────────────────────────────────────────────────────
+showOverlay('SAND TETRIS', 'Blocks dissolve into sand<br>particles when they land!<br><br>Press <b>Start</b> or <b>Space</b>');
+render(); // 渲染空背景，确认 canvas 正常
+</script>
+</body>
+</html>
