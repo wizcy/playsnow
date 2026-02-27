@@ -473,6 +473,43 @@ export const games: Game[] = [
       { question: "Is it possible to get stuck in Magic Tower?", answer: "Yes, it's possible to reach an unwinnable state if you use keys or fight monsters in the wrong order. This is why saving frequently is important. Strategic planning is the key to completing all 28 floors." }
     ]
   },
+  {
+    slug: "sand-tetris",
+    title: "Sand Tetris",
+    description: "A physics-based Tetris variant where blocks dissolve into sand particles that pile up naturally.",
+    category: "Puzzle",
+    color: "#c07830",
+    emoji: "⏳",
+    keywords: ["sand tetris", "physics tetris", "sand game online", "tetris with sand", "play sand tetris free"],
+    longDescription: "Sand Tetris reimagines the classic Tetris formula with a stunning physics twist: when a piece lands, it doesn't lock in place — it dissolves into hundreds of individual sand particles that tumble, slide, and pile up according to real gravity rules. Each particle seeks the lowest available position, creating organic, ever-shifting sand dunes instead of rigid blocks. Lines clear when a row reaches 90% density, and the sand above cascades down to fill the gaps. It's hypnotic, unpredictable, and endlessly satisfying.",
+    howToPlay: {
+      desktop: "Use Left/Right arrow keys to move the falling piece, Up arrow or Z to rotate, Down arrow to soft drop, and Space to hard drop instantly. The piece will dissolve into sand particles on landing. Clear rows by filling them to 90% density — sand doesn't pack perfectly, so gaps are normal. Plan ahead as sand piles can shift unexpectedly.",
+      mobile: "Swipe left/right to move the piece, swipe up to rotate, swipe down to hard drop, or tap the piece to rotate. Use the on-screen buttons below the game for precise control. The touch controls are optimized for one-handed play."
+    },
+    features: [
+      "Real-time sand particle physics — each grain falls and slides independently",
+      "90% density line-clear rule creates organic, forgiving gameplay",
+      "7 classic Tetromino shapes, each with a unique sand color",
+      "Ghost piece preview shows where your piece will land",
+      "Progressive difficulty — sand becomes more active at higher levels",
+      "Combo scoring: chain clears for up to 3× multiplier",
+      "60fps smooth simulation with up to 8,000 sand particles"
+    ],
+    tips: [
+      "Sand spreads sideways — leave small gaps and let physics fill them naturally",
+      "Hard drop (Space) is your best friend for precise placement before sand shifts",
+      "I-pieces create wide flat layers that are easiest to clear",
+      "Watch the sides — sand can pile up in corners faster than the center",
+      "At higher levels, sand moves faster between drops — plan 2 pieces ahead",
+      "A near-full row will clear even with small gaps, so don't wait for perfection"
+    ],
+    faq: [
+      { question: "Why don't lines clear when they look full?", answer: "Sand Tetris uses a 90% density threshold, not 100%. A row clears when at least 90% of its cells contain sand. If a row looks almost full but hasn't cleared, a few more particles need to settle into it. Sand naturally leaves tiny gaps, which is why the threshold is 90% instead of 100%." },
+      { question: "What happens to sand after a line clears?", answer: "When a row clears, all sand in that row disappears and the sand above it becomes subject to gravity again. It cascades down to fill the empty space, often triggering chain reactions that clear additional rows. This settling phase is part of the strategy." },
+      { question: "How is Sand Tetris different from regular Tetris?", answer: "In regular Tetris, pieces lock in place as rigid blocks. In Sand Tetris, pieces dissolve into individual sand particles on landing. These particles obey physics — they fall straight down if possible, or slide diagonally if blocked. This creates organic, unpredictable pile shapes that make every game unique." },
+      { question: "Can I play Sand Tetris on mobile?", answer: "Yes! Sand Tetris is fully optimized for mobile. Swipe to move and rotate pieces, or use the on-screen control buttons. The canvas automatically scales to fit your screen size." }
+    ]
+  },
 ];
 
 export const categories = [
