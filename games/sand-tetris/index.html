@@ -13,31 +13,43 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   min-height: 100vh;
   padding: 8px 4px;
   overflow-x: hidden;
 }
 h1 {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   color: #e8c060;
   margin-bottom: 8px;
   letter-spacing: 3px;
   text-shadow: 0 0 12px rgba(232,192,96,0.4);
 }
-#wrap {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
+#wrap { display: flex; gap: 10px; align-items: flex-start; }
+#canvas-wrap { position: relative; }
 #game-canvas {
   display: block;
-  border: 1px solid #333;
+  border: 1px solid #444;
   box-shadow: 0 0 24px rgba(100,80,40,0.4);
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
+#overlay {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(5,5,15,0.93);
+  border: 1px solid #b06020;
+  border-radius: 10px;
+  padding: 20px 28px;
+  text-align: center;
+  z-index: 10;
+  min-width: 160px;
+}
+#overlay h2 { color: #e8c060; font-size: 1.2rem; margin-bottom: 8px; }
+#overlay p  { color: #a08040; font-size: 0.8rem; line-height: 1.6; }
 #panel {
-  width: 110px;
+  width: 100px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -46,54 +58,25 @@ h1 {
   background: #12122a;
   border: 1px solid #2a2a4a;
   border-radius: 6px;
-  padding: 7px 8px;
+  padding: 6px 8px;
   text-align: center;
 }
-.box h3 {
-  font-size: 0.6rem;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 3px;
-}
-.box .val {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #e8c060;
-}
-#next-canvas {
-  display: block;
-  margin: 4px auto 0;
-  image-rendering: pixelated;
-}
+.box h3 { font-size: 0.58rem; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+.box .val { font-size: 1.1rem; font-weight: bold; color: #e8c060; }
+#next-canvas { display: block; margin: 4px auto 0; image-rendering: pixelated; }
 #btn-start {
   width: 100%;
-  padding: 9px 0;
+  padding: 8px 0;
   background: #7a3a10;
   color: #f0c060;
   border: 1px solid #b06020;
   border-radius: 6px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: bold;
   cursor: pointer;
   letter-spacing: 1px;
-  transition: background 0.15s;
 }
 #btn-start:hover { background: #9a4a18; }
-#overlay {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(5,5,15,0.93);
-  border: 1px solid #b06020;
-  border-radius: 10px;
-  padding: 22px 30px;
-  text-align: center;
-  z-index: 10;
-}
-#overlay h2 { color: #e8c060; font-size: 1.3rem; margin-bottom: 8px; }
-#overlay p  { color: #a08040; font-size: 0.82rem; line-height: 1.5; }
-#canvas-wrap { position: relative; }
 #mobile-btns {
   display: none;
   gap: 8px;
@@ -102,23 +85,22 @@ h1 {
   flex-wrap: wrap;
 }
 .mbtn {
-  width: 58px; height: 58px;
+  width: 60px; height: 60px;
   background: #12122a;
   border: 1px solid #2a2a4a;
   border-radius: 8px;
   color: #e8c060;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 .mbtn:active { background: #2a2a5a; }
-@media (max-width: 540px) {
+@media (max-width: 520px) {
   #mobile-btns { display: flex; }
-  h1 { font-size: 1rem; }
-  #panel { width: 88px; }
-  .box .val { font-size: 1rem; }
+  #panel { width: 80px; }
+  .box .val { font-size: 0.95rem; }
 }
 </style>
 </head>
@@ -129,13 +111,13 @@ h1 {
     <canvas id="game-canvas"></canvas>
     <div id="overlay">
       <h2>SAND TETRIS</h2>
-      <p>Blocks dissolve into sand<br>Press Start or Space</p>
+      <p>Blocks dissolve into sand<br>particles when they land!<br><br>Press <b>Start</b> or <b>Space</b></p>
     </div>
   </div>
   <div id="panel">
     <div class="box">
       <h3>Next</h3>
-      <canvas id="next-canvas" width="88" height="88"></canvas>
+      <canvas id="next-canvas" width="80" height="80"></canvas>
     </div>
     <div class="box"><h3>Score</h3><div class="val" id="v-score">0</div></div>
     <div class="box"><h3>Level</h3><div class="val" id="v-level">1</div></div>
@@ -149,27 +131,26 @@ h1 {
   <div class="mbtn" id="mb-right">▶</div>
   <div class="mbtn" id="mb-drop">▼▼</div>
 </div>
-<script>
-// ── Constants ──────────────────────────────────────────────────────────────
-const COLS = 80, ROWS = 160;          // sand grid
-const BLOCK = 4;                       // sand px per tetromino cell
-const TCOLS = COLS / BLOCK;            // 20 tetromino columns
-const TROWS = ROWS / BLOCK;            // 40 tetromino rows
-const DENSITY = 0.85;
-const CANVAS_W = COLS * 1;             // will scale via CSS / pixel ratio
-const CANVAS_H = ROWS * 1;
 
-// ── Canvas ─────────────────────────────────────────────────────────────────
-const canvas = document.getElementById('game-canvas');
-const ctx    = canvas.getContext('2d');
+<script>
+// ── 常量：方块网格 10×20，每格 = 4×4 沙粒 ──────────────────────────────
+const TCOLS = 10, TROWS = 20;   // 俄罗斯方块逻辑格子
+const PX    = 4;                 // 每格 = PX×PX 沙粒像素
+const COLS  = TCOLS * PX;       // 沙粒网格宽 = 40
+const ROWS  = TROWS * PX;       // 沙粒网格高 = 80
+const DENSITY = 0.85;
+
+// ── Canvas 自适应尺寸 ────────────────────────────────────────────────────
+const canvas  = document.getElementById('game-canvas');
+const ctx     = canvas.getContext('2d');
 const ncanvas = document.getElementById('next-canvas');
 const nctx    = ncanvas.getContext('2d');
 
-// Responsive: fit screen
 function setCanvasSize() {
-  const maxH = window.innerHeight - 130;
+  const maxH = window.innerHeight - 120;
   const maxW = window.innerWidth  - 130;
-  const scale = Math.max(1, Math.min(
+  // scale 让游戏区域尽量大，但保持整数倍（清晰）
+  const scale = Math.max(2, Math.min(
     Math.floor(maxH / ROWS),
     Math.floor(maxW / COLS)
   ));
@@ -177,156 +158,69 @@ function setCanvasSize() {
   canvas.height = ROWS;
   canvas.style.width  = (COLS  * scale) + 'px';
   canvas.style.height = (ROWS  * scale) + 'px';
-  canvas._scale = scale;
 }
 setCanvasSize();
 window.addEventListener('resize', setCanvasSize);
 
-// ── Tetromino definitions ──────────────────────────────────────────────────
-// Each shape: array of [col, row] in tetromino coords (0-based)
+// ── 沙粒网格（Uint32Array，每格存 RGBA 颜色，0=空）────────────────────
+let grid   = new Uint32Array(COLS * ROWS);
+let stable = new Uint8Array(COLS * ROWS);   // 稳定计数，减少无效计算
+const imgBuf = new Uint8ClampedArray(COLS * ROWS * 4);
+
+function gIdx(r, c) { return r * COLS + c; }
+
+// ── 颜色工具 ─────────────────────────────────────────────────────────────
+function colorVariant(rgba) {
+  // 亮度随机偏差 ±12%，让沙粒有颗粒感
+  const d = (Math.random() - 0.5) * 0.24;
+  const r = Math.min(255, Math.max(0, ((rgba >>> 24) & 0xff) * (1 + d))) | 0;
+  const g = Math.min(255, Math.max(0, ((rgba >>> 16) & 0xff) * (1 + d))) | 0;
+  const b = Math.min(255, Math.max(0, ((rgba >>>  8) & 0xff) * (1 + d))) | 0;
+  return (r << 24) | (g << 16) | (b << 8) | 0xff;
+}
+
+// ── 方块定义 ─────────────────────────────────────────────────────────────
+// cells: [col, row] 相对坐标
 const SHAPES = [
-  { name:'I', color:0x00FFFFFF, cells:[[0,1],[1,1],[2,1],[3,1]] },
+  { name:'I', color:0x00EEEEFF, cells:[[0,1],[1,1],[2,1],[3,1]] },
   { name:'O', color:0xFFD700FF, cells:[[0,0],[1,0],[0,1],[1,1]] },
-  { name:'T', color:0x9B59B6FF, cells:[[1,0],[0,1],[1,1],[2,1]] },
-  { name:'S', color:0x2ECC71FF, cells:[[1,0],[2,0],[0,1],[1,1]] },
-  { name:'Z', color:0xE74C3CFF, cells:[[0,0],[1,0],[1,1],[2,1]] },
-  { name:'J', color:0x3498DBFF, cells:[[0,0],[0,1],[1,1],[2,1]] },
-  { name:'L', color:0xE67E22FF, cells:[[2,0],[0,1],[1,1],[2,1]] },
+  { name:'T', color:0xAA44CCFF, cells:[[1,0],[0,1],[1,1],[2,1]] },
+  { name:'S', color:0x22CC66FF, cells:[[1,0],[2,0],[0,1],[1,1]] },
+  { name:'Z', color:0xEE3333FF, cells:[[0,0],[1,0],[1,1],[2,1]] },
+  { name:'J', color:0x2266EEFF, cells:[[0,0],[0,1],[1,1],[2,1]] },
+  { name:'L', color:0xFF8822FF, cells:[[2,0],[0,1],[1,1],[2,1]] },
 ];
 
 function randShape() { return SHAPES[Math.floor(Math.random() * SHAPES.length)]; }
 
-// ── Sand grid ──────────────────────────────────────────────────────────────
-// Uint32Array: 0 = empty, else RGBA packed (R<<24|G<<16|B<<8|A)
-let grid   = new Uint32Array(COLS * ROWS);
-let stable = new Uint8Array(COLS * ROWS);  // stability counter
-
-function gIdx(r, c) { return r * COLS + c; }
-
-function colorVariant(rgba) {
-  // ±10% brightness variation per particle
-  const r = (rgba >>> 24) & 0xff;
-  const g = (rgba >>> 16) & 0xff;
-  const b = (rgba >>>  8) & 0xff;
-  const v = (Math.random() - 0.5) * 0.2;
-  const clamp = x => Math.max(0, Math.min(255, Math.round(x)));
-  return (clamp(r*(1+v)) << 24) | (clamp(g*(1+v)) << 16) | (clamp(b*(1+v)) << 8) | 0xff;
-}
-
-// ── Physics ────────────────────────────────────────────────────────────────
-let minActiveRow = ROWS - 1;
-
-function updateSand() {
-  let newMin = ROWS - 1;
-  const leftToRight = Math.random() > 0.5;
-
-  for (let row = ROWS - 2; row >= 0; row--) {
-    for (let i = 0; i < COLS; i++) {
-      const col = leftToRight ? i : COLS - 1 - i;
-      const idx = gIdx(row, col);
-      if (grid[idx] === 0) continue;
-      if (stable[idx] >= 3) { if (row < newMin) newMin = row; continue; }
-
-      const color = grid[idx];
-      const below = gIdx(row + 1, col);
-
-      if (grid[below] === 0) {
-        grid[below] = color; grid[idx] = 0;
-        stable[below] = 0;   stable[idx] = 0;
-        if (row + 1 < newMin) newMin = row + 1;
-        continue;
-      }
-      const dl = col - 1, dr = col + 1;
-      const canL = dl >= 0   && grid[gIdx(row+1, dl)] === 0;
-      const canR = dr < COLS && grid[gIdx(row+1, dr)] === 0;
-
-      if (canL && canR) {
-        const nc = Math.random() > 0.5 ? dl : dr;
-        const ni = gIdx(row+1, nc);
-        grid[ni] = color; grid[idx] = 0;
-        stable[ni] = 0;   stable[idx] = 0;
-        if (row+1 < newMin) newMin = row+1;
-      } else if (canL) {
-        const ni = gIdx(row+1, dl);
-        grid[ni] = color; grid[idx] = 0;
-        stable[ni] = 0;   stable[idx] = 0;
-        if (row+1 < newMin) newMin = row+1;
-      } else if (canR) {
-        const ni = gIdx(row+1, dr);
-        grid[ni] = color; grid[idx] = 0;
-        stable[ni] = 0;   stable[idx] = 0;
-        if (row+1 < newMin) newMin = row+1;
-      } else {
-        stable[idx]++;
-        if (row < newMin) newMin = row;
-      }
-    }
-  }
-  minActiveRow = Math.max(0, newMin - 2);
-}
-
-// ── Line clear ─────────────────────────────────────────────────────────────
-function checkLines() {
-  let cleared = 0;
-  for (let row = ROWS - 1; row >= 0; row--) {
-    let count = 0;
-    for (let c = 0; c < COLS; c++) if (grid[gIdx(row, c)]) count++;
-    if (count / COLS >= DENSITY) {
-      // flash white
-      for (let c = 0; c < COLS; c++) grid[gIdx(row, c)] = 0xFFFFFFFF;
-      // clear after brief delay handled by zeroing now + physics fills gap
-      for (let c = 0; c < COLS; c++) { grid[gIdx(row, c)] = 0; stable[gIdx(row, c)] = 0; }
-      // reset stability above
-      for (let r2 = Math.max(0, row - 8); r2 <= row; r2++)
-        for (let c = 0; c < COLS; c++) stable[gIdx(r2, c)] = 0;
-      cleared++;
-      row++; // recheck same index after shift
-    }
-  }
-  return cleared;
-}
-
-// ── Tetromino piece ────────────────────────────────────────────────────────
+// ── Piece 类 ─────────────────────────────────────────────────────────────
 class Piece {
   constructor(shape) {
     this.shape = shape;
     this.color = shape.color;
-    this.cells = shape.cells.map(([c,r]) => [c,r]); // [tcol, trow]
-    // spawn centered
-    const minC = Math.min(...this.cells.map(([c])=>c));
-    const maxC = Math.max(...this.cells.map(([c])=>c));
-    this.tx = Math.floor((TCOLS - (maxC - minC + 1)) / 2) - minC;
-    this.ty = 0;
+    this.cells = shape.cells.map(c => [...c]);
+    this.tx = Math.floor((TCOLS - 4) / 2);  // 水平居中
+    this.ty = -2;
   }
 
-  // absolute tetromino coords
-  abs() { return this.cells.map(([c,r]) => [c + this.tx, r + this.ty]); }
-
-  // sand-grid coords of all 4×4 blocks
-  sandCells() {
-    const out = [];
-    for (const [tc, tr] of this.abs()) {
-      const sr = tr * BLOCK, sc = tc * BLOCK;
-      for (let dr = 0; dr < BLOCK; dr++)
-        for (let dc = 0; dc < BLOCK; dc++)
-          out.push([sr+dr, sc+dc]);
-    }
-    return out;
+  abs() {
+    return this.cells.map(([c, r]) => [c + this.tx, r + this.ty]);
   }
 
-  collides(dtx=0, dty=0, newCells=null) {
-    const cells = newCells || this.cells;
-    for (const [c,r] of cells) {
+  collides(dtx = 0, dty = 0, cells = null) {
+    for (const [c, r] of (cells || this.cells)) {
       const ac = c + this.tx + dtx;
       const ar = r + this.ty + dty;
       if (ac < 0 || ac >= TCOLS) return true;
       if (ar >= TROWS) return true;
-      // check all 4×4 sand cells
-      for (let dr = 0; dr < BLOCK; dr++) {
-        for (let dc = 0; dc < BLOCK; dc++) {
-          const sr = ar*BLOCK+dr, sc = ac*BLOCK+dc;
+      if (ar < 0) continue;
+      // 检查对应的 PX×PX 沙粒区域
+      for (let dr = 0; dr < PX; dr++) {
+        for (let dc = 0; dc < PX; dc++) {
+          const sr = ar * PX + dr;
+          const sc = ac * PX + dc;
           if (sr >= ROWS) return true;
-          if (grid[gIdx(sr, sc)]) return true;
+          if (sc >= 0 && sc < COLS && grid[gIdx(sr, sc)]) return true;
         }
       }
     }
@@ -334,50 +228,134 @@ class Piece {
   }
 
   rotate() {
-    // 90° clockwise: [c,r] → [maxR-r, c]
-    const maxR = Math.max(...this.cells.map(([,r])=>r));
-    return this.cells.map(([c,r]) => [maxR - r, c]);
+    const maxR = Math.max(...this.cells.map(([, r]) => r));
+    const rotated = this.cells.map(([c, r]) => [maxR - r, c]);
+    if (!this.collides(0, 0, rotated)) {
+      this.cells = rotated;
+    } else if (!this.collides(1, 0, rotated)) {
+      this.cells = rotated; this.tx += 1;
+    } else if (!this.collides(-1, 0, rotated)) {
+      this.cells = rotated; this.tx -= 1;
+    }
   }
 
   lock() {
-    for (const [sr, sc] of this.sandCells()) {
-      if (sr >= 0 && sr < ROWS && sc >= 0 && sc < COLS) {
-        grid[gIdx(sr, sc)] = colorVariant(this.color);
-        stable[gIdx(sr, sc)] = 0;
+    for (const [tc, tr] of this.abs()) {
+      for (let dr = 0; dr < PX; dr++) {
+        for (let dc = 0; dc < PX; dc++) {
+          const sr = tr * PX + dr;
+          const sc = tc * PX + dc;
+          if (sr >= 0 && sr < ROWS && sc >= 0 && sc < COLS) {
+            grid[gIdx(sr, sc)] = colorVariant(this.color);
+            stable[gIdx(sr, sc)] = 0;
+          }
+        }
       }
     }
-    minActiveRow = 0;
   }
 }
 
-// ── Game state ─────────────────────────────────────────────────────────────
+// ── 游戏状态 ─────────────────────────────────────────────────────────────
 let current = null, next = null;
 let score = 0, level = 1, lines = 0;
 let running = false, over = false;
-let dropTimer = 0, dropInterval = 700;
-let lastTs = 0;
-let softDrop = false;
+let dropTimer = 0, dropInterval = 600;
+let lastTs = 0, softDrop = false;
 
 const SCORE_TABLE = [0, 100, 300, 500, 800];
 
+// ── 沙粒物理 ─────────────────────────────────────────────────────────────
+function updateSand() {
+  // 从底部往上扫，随机左右方向避免偏差
+  for (let row = ROWS - 2; row >= 0; row--) {
+    const ltr = Math.random() > 0.5;
+    for (let i = 0; i < COLS; i++) {
+      const col = ltr ? i : COLS - 1 - i;
+      const idx = gIdx(row, col);
+      if (!grid[idx]) continue;
+
+      // 稳定沙粒跳过（连续5帧未动）
+      if (stable[idx] >= 5) continue;
+
+      const color = grid[idx];
+      const below = gIdx(row + 1, col);
+
+      if (!grid[below]) {
+        // 正下方空 → 下落
+        grid[below] = color;
+        stable[below] = 0;
+        grid[idx] = 0;
+        stable[idx] = 0;
+      } else {
+        // 尝试左下或右下
+        const goLeft = Math.random() > 0.5;
+        const c1 = goLeft ? col - 1 : col + 1;
+        const c2 = goLeft ? col + 1 : col - 1;
+        let moved = false;
+        for (const nc of [c1, c2]) {
+          if (nc >= 0 && nc < COLS && !grid[gIdx(row + 1, nc)]) {
+            grid[gIdx(row + 1, nc)] = color;
+            stable[gIdx(row + 1, nc)] = 0;
+            grid[idx] = 0;
+            stable[idx] = 0;
+            moved = true;
+            break;
+          }
+        }
+        if (!moved) {
+          stable[idx] = Math.min(255, stable[idx] + 1);
+        }
+      }
+    }
+  }
+}
+
+// ── 消行 ─────────────────────────────────────────────────────────────────
+function checkLines() {
+  let cleared = 0;
+  for (let row = ROWS - 1; row >= 0; row--) {
+    let count = 0;
+    for (let col = 0; col < COLS; col++) {
+      if (grid[gIdx(row, col)]) count++;
+    }
+    if (count / COLS >= DENSITY) {
+      // 消行：清空 + 闪白特效
+      for (let col = 0; col < COLS; col++) {
+        grid[gIdx(row, col)] = 0;
+        stable[gIdx(row, col)] = 0;
+      }
+      // 重置上方沙粒稳定状态，让它们重新受重力
+      for (let r = 0; r < row; r++) {
+        for (let col = 0; col < COLS; col++) {
+          if (grid[gIdx(r, col)]) stable[gIdx(r, col)] = 0;
+        }
+      }
+      cleared++;
+      row++; // 重新检查当前行
+    }
+  }
+  return cleared;
+}
+
+// ── 生成方块 ─────────────────────────────────────────────────────────────
 function spawnPiece() {
   current = next || new Piece(randShape());
-  next    = new Piece(randShape());
+  next = new Piece(randShape());
   drawNext();
-  if (current.collides()) { endGame(); }
+  if (current.collides()) endGame();
 }
 
 function lockAndSpawn() {
   current.lock();
   const cleared = checkLines();
   if (cleared > 0) {
-    score += (SCORE_TABLE[Math.min(cleared,4)] || cleared*200) * level;
+    score += (SCORE_TABLE[Math.min(cleared, 4)] || cleared * 200) * level;
     lines += cleared;
-    level  = Math.floor(lines / 10) + 1;
-    dropInterval = Math.max(80, 700 - (level-1)*60);
+    level = Math.floor(lines / 10) + 1;
+    dropInterval = Math.max(80, 600 - (level - 1) * 55);
     updateUI();
   }
-  // check overflow: sand in top 3 rows
+  // 溢出检测：顶部3行有沙粒
   for (let c = 0; c < COLS; c++) {
     if (grid[gIdx(2, c)]) { endGame(); return; }
   }
@@ -386,14 +364,14 @@ function lockAndSpawn() {
 
 function endGame() {
   running = false; over = true;
-  showOverlay('GAME OVER', `Score: ${score}  Lines: ${lines}`);
+  showOverlay('GAME OVER', `Score: ${score}  Lines: ${lines}\nPress Start to retry`);
 }
 
 function startGame() {
   grid.fill(0); stable.fill(0);
-  score=0; level=1; lines=0;
-  over=false; running=true;
-  dropTimer=0; dropInterval=700; minActiveRow=0;
+  score = 0; level = 1; lines = 0;
+  over = false; running = true;
+  dropTimer = 0; dropInterval = 600; softDrop = false;
   next = new Piece(randShape());
   spawnPiece();
   updateUI();
@@ -402,17 +380,15 @@ function startGame() {
   requestAnimationFrame(loop);
 }
 
-// ── Main loop ──────────────────────────────────────────────────────────────
+// ── 主循环 ───────────────────────────────────────────────────────────────
 function loop(ts) {
   if (!running) return;
   const dt = Math.min(ts - lastTs, 50);
   lastTs = ts;
 
-  // physics every frame
   updateSand();
 
-  // piece drop
-  const interval = softDrop ? Math.max(40, dropInterval/8) : dropInterval;
+  const interval = softDrop ? Math.max(40, dropInterval / 8) : dropInterval;
   dropTimer += dt;
   if (dropTimer >= interval) {
     dropTimer = 0;
@@ -428,79 +404,62 @@ function loop(ts) {
   requestAnimationFrame(loop);
 }
 
-// ── Render ─────────────────────────────────────────────────────────────────
-const imgBuf = new Uint8ClampedArray(COLS * ROWS * 4);
-
+// ── 渲染 ─────────────────────────────────────────────────────────────────
 function render() {
-  // Build pixel buffer from grid
+  // 填充背景色
   imgBuf.fill(0);
   for (let i = 0; i < COLS * ROWS; i++) {
-    const v = grid[i];
-    if (!v) continue;
     const p = i * 4;
-    imgBuf[p]   = (v >>> 24) & 0xff;
-    imgBuf[p+1] = (v >>> 16) & 0xff;
-    imgBuf[p+2] = (v >>>  8) & 0xff;
-    imgBuf[p+3] = 0xff;
-  }
-
-  // Background
-  for (let i = 0; i < COLS * ROWS * 4; i += 4) {
-    if (imgBuf[i+3] === 0) {
-      imgBuf[i]   = 26;
-      imgBuf[i+1] = 26;
-      imgBuf[i+2] = 46;
-      imgBuf[i+3] = 255;
+    const v = grid[i];
+    if (v) {
+      imgBuf[p]   = (v >>> 24) & 0xff;
+      imgBuf[p+1] = (v >>> 16) & 0xff;
+      imgBuf[p+2] = (v >>>  8) & 0xff;
+      imgBuf[p+3] = 0xff;
+    } else {
+      imgBuf[p]   = 18;
+      imgBuf[p+1] = 18;
+      imgBuf[p+2] = 38;
+      imgBuf[p+3] = 255;
     }
   }
 
-  // Draw current piece into buffer
+  // 绘制当前方块（ghost + 实体）
   if (current) {
-    // Ghost
     let ghostDy = 0;
     while (!current.collides(0, ghostDy + 1)) ghostDy++;
-    if (ghostDy > 0) drawPieceInBuf(current, 0, ghostDy, 0.22);
-    drawPieceInBuf(current, 0, 0, 1.0);
+    drawPieceToBuffer(current, 0, ghostDy, 0.2);
+    drawPieceToBuffer(current, 0, 0, 1.0);
   }
 
-  const imgData = new ImageData(imgBuf, COLS, ROWS);
-  ctx.putImageData(imgData, 0, 0);
-
-  // Subtle grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
-  ctx.lineWidth = 0.5;
-  for (let c = 0; c <= COLS; c += BLOCK) {
-    ctx.beginPath(); ctx.moveTo(c, 0); ctx.lineTo(c, ROWS); ctx.stroke();
-  }
-  for (let r = 0; r <= ROWS; r += BLOCK) {
-    ctx.beginPath(); ctx.moveTo(0, r); ctx.lineTo(COLS, r); ctx.stroke();
-  }
+  ctx.putImageData(new ImageData(imgBuf, COLS, ROWS), 0, 0);
 }
 
-function drawPieceInBuf(piece, dtx, dty, alpha) {
-  const r = (piece.color >>> 24) & 0xff;
-  const g = (piece.color >>> 16) & 0xff;
-  const b = (piece.color >>>  8) & 0xff;
+function drawPieceToBuffer(piece, dtx, dty, alpha) {
+  const r0 = (piece.color >>> 24) & 0xff;
+  const g0 = (piece.color >>> 16) & 0xff;
+  const b0 = (piece.color >>>  8) & 0xff;
   for (const [tc, tr] of piece.cells) {
     const ac = tc + piece.tx + dtx;
     const ar = tr + piece.ty + dty;
-    for (let dr = 0; dr < BLOCK; dr++) {
-      for (let dc = 0; dc < BLOCK; dc++) {
-        const sr = ar*BLOCK+dr, sc = ac*BLOCK+dc;
+    for (let dr = 0; dr < PX; dr++) {
+      for (let dc = 0; dc < PX; dc++) {
+        const sr = ar * PX + dr;
+        const sc = ac * PX + dc;
         if (sr < 0 || sr >= ROWS || sc < 0 || sc >= COLS) continue;
-        const p = (sr*COLS+sc)*4;
+        const p = gIdx(sr, sc) * 4;
+        const edge = dr === 0 || dr === PX-1 || dc === 0 || dc === PX-1;
+        const r = edge ? Math.min(255, r0 + 40) : r0;
+        const g = edge ? Math.min(255, g0 + 40) : g0;
+        const b = edge ? Math.min(255, b0 + 40) : b0;
         if (alpha < 1) {
-          imgBuf[p]   = Math.round(imgBuf[p]   * (1-alpha) + r * alpha);
-          imgBuf[p+1] = Math.round(imgBuf[p+1] * (1-alpha) + g * alpha);
-          imgBuf[p+2] = Math.round(imgBuf[p+2] * (1-alpha) + b * alpha);
+          imgBuf[p]   = (imgBuf[p]   * (1-alpha) + r * alpha) | 0;
+          imgBuf[p+1] = (imgBuf[p+1] * (1-alpha) + g * alpha) | 0;
+          imgBuf[p+2] = (imgBuf[p+2] * (1-alpha) + b * alpha) | 0;
+          imgBuf[p+3] = 255;
         } else {
-          // solid with inner highlight
-          const edge = dr===0||dr===BLOCK-1||dc===0||dc===BLOCK-1;
-          imgBuf[p]   = edge ? Math.min(255,r+40) : r;
-          imgBuf[p+1] = edge ? Math.min(255,g+40) : g;
-          imgBuf[p+2] = edge ? Math.min(255,b+40) : b;
+          imgBuf[p] = r; imgBuf[p+1] = g; imgBuf[p+2] = b; imgBuf[p+3] = 255;
         }
-        imgBuf[p+3] = 255;
       }
     }
   }
@@ -508,22 +467,16 @@ function drawPieceInBuf(piece, dtx, dty, alpha) {
 
 function drawNext() {
   nctx.fillStyle = '#0d0d1a';
-  nctx.fillRect(0, 0, 88, 88);
+  nctx.fillRect(0, 0, 80, 80);
   if (!next) return;
-  const r = (next.color>>>24)&0xff, g=(next.color>>>16)&0xff, b=(next.color>>>8)&0xff;
-  nctx.fillStyle = `rgb(${r},${g},${b})`;
-  const bs = 16;
-  const minC = Math.min(...next.cells.map(([c])=>c));
-  const minR = Math.min(...next.cells.map(([,r])=>r));
-  const maxC = Math.max(...next.cells.map(([c])=>c));
-  const maxR = Math.max(...next.cells.map(([,r])=>r));
-  const ox = Math.floor((88-(maxC-minC+1)*bs)/2);
-  const oy = Math.floor((88-(maxR-minR+1)*bs)/2);
-  for (const [tc,tr] of next.cells) {
-    nctx.fillRect(ox+(tc-minC)*bs, oy+(tr-minR)*bs, bs-1, bs-1);
-    nctx.fillStyle = `rgba(255,255,255,0.15)`;
-    nctx.fillRect(ox+(tc-minC)*bs+1, oy+(tr-minR)*bs+1, bs-3, bs-3);
-    nctx.fillStyle = `rgb(${r},${g},${b})`;
+  const r0 = (next.color >>> 24) & 0xff;
+  const g0 = (next.color >>> 16) & 0xff;
+  const b0 = (next.color >>>  8) & 0xff;
+  nctx.fillStyle = `rgb(${r0},${g0},${b0})`;
+  const offX = (4 - Math.max(...next.cells.map(([c])=>c)) - 1) * 9 + 4;
+  const offY = (2 - Math.max(...next.cells.map(([,r])=>r))) * 9 + 10;
+  for (const [c, r] of next.cells) {
+    nctx.fillRect(offX + c * 18, offY + r * 18, 16, 16);
   }
 }
 
@@ -533,26 +486,28 @@ function updateUI() {
   document.getElementById('v-lines').textContent = lines;
 }
 
-// ── Overlay ────────────────────────────────────────────────────────────────
-const overlay = document.getElementById('overlay');
-function showOverlay(t, s) {
-  overlay.innerHTML = `<h2>${t}</h2><p>${s}</p>`;
-  overlay.style.display = 'block';
+function showOverlay(title, msg) {
+  const el = document.getElementById('overlay');
+  el.querySelector('h2').textContent = title;
+  el.querySelector('p').innerHTML = msg.replace(/\n/g, '<br>');
+  el.style.display = 'block';
 }
-function hideOverlay() { overlay.style.display = 'none'; }
+function hideOverlay() {
+  document.getElementById('overlay').style.display = 'none';
+}
 
-// ── Input ──────────────────────────────────────────────────────────────────
-document.getElementById('btn-start').addEventListener('click', startGame);
-
+// ── 键盘输入 ─────────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  if (over && e.code === 'Space') { startGame(); return; }
-  if (!running || !current) return;
-  switch(e.code) {
+  if (!running) {
+    if (e.code === 'Space') { e.preventDefault(); startGame(); }
+    return;
+  }
+  if (!current) return;
+  switch (e.code) {
     case 'ArrowLeft':  e.preventDefault(); if (!current.collides(-1,0)) current.tx--; break;
-    case 'ArrowRight': e.preventDefault(); if (!current.collides( 1,0)) current.tx++; break;
+    case 'ArrowRight': e.preventDefault(); if (!current.collides(1,0))  current.tx++; break;
+    case 'ArrowUp': case 'KeyZ': e.preventDefault(); current.rotate(); break;
     case 'ArrowDown':  e.preventDefault(); softDrop = true; break;
-    case 'ArrowUp':    e.preventDefault(); tryRotate(); break;
-    case 'KeyZ':       tryRotate(); break;
     case 'Space':      e.preventDefault(); hardDrop(); break;
   }
 });
@@ -560,64 +515,55 @@ document.addEventListener('keyup', e => {
   if (e.code === 'ArrowDown') softDrop = false;
 });
 
-function tryRotate() {
-  if (!current) return;
-  const rot = current.rotate();
-  for (const kick of [0,-1,1,-2,2]) {
-    if (!current.collides(kick, 0, rot)) {
-      current.cells = rot;
-      current.tx += kick;
-      return;
-    }
-  }
-}
-
 function hardDrop() {
   if (!current) return;
-  while (!current.collides(0,1)) { current.ty++; score += 2; }
-  lockAndSpawn();
+  while (!current.collides(0, 1)) { current.ty++; score++; }
   updateUI();
+  lockAndSpawn();
 }
 
-// Mobile buttons
-document.getElementById('mb-left').addEventListener('click',  () => { if(running&&current&&!current.collides(-1,0)) current.tx--; });
-document.getElementById('mb-right').addEventListener('click', () => { if(running&&current&&!current.collides( 1,0)) current.tx++; });
-document.getElementById('mb-rot').addEventListener('click',   () => { if(running) tryRotate(); });
-document.getElementById('mb-drop').addEventListener('click',  () => { if(running) hardDrop(); });
-
-// Touch swipe
-let tx0=0, ty0=0;
+// ── 触摸输入 ─────────────────────────────────────────────────────────────
+let touchX = 0, touchY = 0;
 canvas.addEventListener('touchstart', e => {
-  tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY;
   e.preventDefault();
-}, {passive:false});
+  touchX = e.touches[0].clientX;
+  touchY = e.touches[0].clientY;
+}, { passive: false });
+
 canvas.addEventListener('touchend', e => {
-  if (!running || !current) return;
-  const dx = e.changedTouches[0].clientX - tx0;
-  const dy = e.changedTouches[0].clientY - ty0;
-  const ax = Math.abs(dx), ay = Math.abs(dy);
-  if (ax < 8 && ay < 8) { tryRotate(); return; }
-  if (ax > ay) {
-    if (dx < 0) { if (!current.collides(-1,0)) current.tx--; }
-    else         { if (!current.collides( 1,0)) current.tx++; }
+  e.preventDefault();
+  if (!running) { startGame(); return; }
+  if (!current) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  const dy = e.changedTouches[0].clientY - touchY;
+  if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+    current.rotate();
+  } else if (Math.abs(dx) > Math.abs(dy)) {
+    if (dx < -20 && !current.collides(-1,0)) current.tx--;
+    else if (dx > 20 && !current.collides(1,0)) current.tx++;
   } else {
-    if (dy > 0) hardDrop();
-    else        tryRotate();
+    if (dy > 20) hardDrop();
   }
-  e.preventDefault();
-}, {passive:false});
+}, { passive: false });
 
-// Double-tap = hard drop
-let lastTap = 0;
-canvas.addEventListener('touchend', e => {
-  const now = Date.now();
-  if (now - lastTap < 300) hardDrop();
-  lastTap = now;
+// ── 移动端按钮 ───────────────────────────────────────────────────────────
+document.getElementById('mb-left').addEventListener('click', () => {
+  if (current && !current.collides(-1,0)) current.tx--;
 });
+document.getElementById('mb-right').addEventListener('click', () => {
+  if (current && !current.collides(1,0)) current.tx++;
+});
+document.getElementById('mb-rot').addEventListener('click', () => {
+  if (current) current.rotate();
+});
+document.getElementById('mb-drop').addEventListener('click', () => {
+  if (running) hardDrop();
+});
+document.getElementById('btn-start').addEventListener('click', startGame);
 
-// Initial blank render
-ctx.fillStyle = '#1a1a2e';
-ctx.fillRect(0, 0, COLS, ROWS);
+// ── 初始化 ───────────────────────────────────────────────────────────────
+showOverlay('SAND TETRIS', 'Blocks dissolve into sand<br>particles when they land!<br><br>Press <b>Start</b> or <b>Space</b>');
+render(); // 渲染空背景，确认 canvas 正常
 </script>
 </body>
 </html>
