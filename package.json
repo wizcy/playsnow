@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && cp -r public/games/sand-tetris out/games/sand-tetris",
+    "build": "next build && mkdir -p out/games/sand-tetris && cp -r public/games/sand-tetris/. out/games/sand-tetris/",
     "start": "next start",
     "lint": "next lint"
   },
