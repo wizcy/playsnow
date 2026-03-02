@@ -138,7 +138,7 @@ const TCOLS = 10, TROWS = 20;   // 俄罗斯方块逻辑格子
 const PX    = 4;                 // 每格 = PX×PX 沙粒像素
 const COLS  = TCOLS * PX;       // 沙粒网格宽 = 40
 const ROWS  = TROWS * PX;       // 沙粒网格高 = 80
-const DENSITY = 0.85;
+const DENSITY = 0.95;
 
 // ── Canvas 自适应尺寸 ────────────────────────────────────────────────────
 const canvas  = document.getElementById('game-canvas');
@@ -315,10 +315,15 @@ function checkLines() {
   let cleared = 0;
   for (let row = ROWS - 1; row >= 0; row--) {
     let count = 0;
+    let stableCount = 0;
     for (let col = 0; col < COLS; col++) {
-      if (grid[gIdx(row, col)]) count++;
+      if (grid[gIdx(row, col)]) {
+        count++;
+        if (stable[gIdx(row, col)] >= 5) stableCount++;
+      }
     }
-    if (count / COLS >= DENSITY) {
+    // 密度够高 且 大部分沙粒已稳定才消除
+    if (count / COLS >= DENSITY && stableCount / COLS >= 0.7) {
       // 消行：清空 + 闪白特效
       for (let col = 0; col < COLS; col++) {
         grid[gIdx(row, col)] = 0;
